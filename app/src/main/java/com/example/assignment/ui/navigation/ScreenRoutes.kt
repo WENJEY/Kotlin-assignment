@@ -1,8 +1,7 @@
 package com.example.assignment.ui.navigation
 
-object ScreenRoutes {
-    const val Logo = "logo"
-    const val Login = "login"
-    const val Register = "register"
-    const val Home = "home"
+sealed class ScreenRoutes(val route: String) {
+    data object Login : ScreenRoutes("login")
+    data object Register : ScreenRoutes("register")
+    data object Home : ScreenRoutes("home")
 }
