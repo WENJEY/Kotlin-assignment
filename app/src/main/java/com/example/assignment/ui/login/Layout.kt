@@ -501,27 +501,27 @@ private fun LoginForm(
             )
             Spacer(modifier = Modifier.height(largeSpacer))
 
-            // Email
+            // Identifier field (email or username)
             CustomTextField(
-                label = "Email",
-                value = uiState.email,
-                onValueChange = { onEvent(LoginEvent.EmailChanged(it)) },
-                placeholder = "abc123@example.com",
-                keyboardType = KeyboardType.Email,
-                error = uiState.emailError,
+                label = "Email or Username",
+                value = uiState.identifier,
+                onValueChange = { onEvent(LoginEvent.IdentifierChanged(it)) },
+                placeholder = "Enter email or username",
+                keyboardType = KeyboardType.Text,
+                error = null,  // No format validation error
                 bodySize = bodySize,
                 buttonHeight = buttonHeight
             )
             Spacer(modifier = Modifier.height(mediumSpacer))
 
-            // Password
+            // Password field
             CustomTextField(
                 label = "Password",
                 value = uiState.password,
                 onValueChange = { onEvent(LoginEvent.PasswordChanged(it)) },
                 placeholder = "**********",
                 keyboardType = KeyboardType.Password,
-                error = uiState.passwordError,
+                error = null,  // No format validation error
                 bodySize = bodySize,
                 buttonHeight = buttonHeight
             )
@@ -540,7 +540,7 @@ private fun LoginForm(
             }
             Spacer(modifier = Modifier.height(tinySpacer))
 
-            // Global error
+            // Global error (from Firebase)
             uiState.error?.let { error ->
                 Text(
                     text = error,
@@ -551,7 +551,7 @@ private fun LoginForm(
                 Spacer(modifier = Modifier.height(tinySpacer))
             }
 
-            // Login button with loading
+            // Login button
             Button(
                 onClick = { onEvent(LoginEvent.LoginClicked) },
                 modifier = Modifier.fillMaxWidth().height(buttonHeight),

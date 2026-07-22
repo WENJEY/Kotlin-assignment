@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.assignment.ui.navigation.ScreenRoutes
 
 @Composable
 fun LoginScreen(
@@ -32,7 +33,14 @@ fun LoginScreen(
 
     LaunchedEffect(uiState.navigateTo) {
         uiState.navigateTo?.let { route ->
-            navController.navigate(route.route)
+            if (route == ScreenRoutes.Home) {
+                navController.navigate(route.route) {
+                    popUpTo(ScreenRoutes.Login.route) { inclusive = true }
+                    launchSingleTop = true
+                }
+            } else {
+                navController.navigate(route.route)
+            }
             viewModel.onEvent(LoginEvent.NavigationHandled)
         }
     }
@@ -50,10 +58,7 @@ private fun LoginScreenContent(
     windowSize: WindowWidthSizeClass,
     onEvent: (LoginEvent) -> Unit
 ) {
-
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val boxMaxHeight = maxHeight
-        val boxMaxWidth = maxWidth
         val isLandscape = maxWidth > maxHeight
         val isNarrowPhone = maxWidth < 360.dp
         val isVeryTallScreen = maxHeight > 1000.dp
@@ -112,8 +117,8 @@ private fun LoginScreenContent(
                 stackHeader = isNarrowPhone || isLandscape,
                 horizontalPadding = horizontalPadding,
                 bottomPadding = bottomPadding,
-                maxHeight = boxMaxHeight,
-                maxWidth = boxMaxWidth,
+                maxHeight = maxHeight,
+                maxWidth = maxWidth,
                 isLandscape = isLandscape,
                 centerContent = isVeryTallScreen,
             )
@@ -125,8 +130,8 @@ private fun LoginScreenContent(
                 titleSize = titleSize,
                 formMaxWidth = formMaxWidth,
                 bottomPadding = bottomPadding,
-                maxHeight = boxMaxHeight,
-                maxWidth = boxMaxWidth,
+                maxHeight = maxHeight,
+                maxWidth = maxWidth,
                 centerContent = isVeryTallScreen,
             )
 
@@ -137,8 +142,8 @@ private fun LoginScreenContent(
                 titleSize = titleSize,
                 formMaxWidth = formMaxWidth,
                 bottomPadding = bottomPadding,
-                maxHeight = boxMaxHeight,
-                maxWidth = boxMaxWidth,
+                maxHeight = maxHeight,
+                maxWidth = maxWidth,
                 centerContent = isVeryTallScreen,
             )
         }

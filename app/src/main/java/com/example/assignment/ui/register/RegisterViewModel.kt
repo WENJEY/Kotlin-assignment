@@ -6,18 +6,20 @@ import com.example.assignment.ui.database.FirebaseRepository
 import com.example.assignment.ui.database.Repository
 import com.example.assignment.ui.utils.Result
 import com.example.assignment.ui.navigation.ScreenRoutes
-import com.example.assignment.ui.utils.InputValidator.validateEmail
-import com.example.assignment.ui.utils.InputValidator.validatePassword
-import com.example.assignment.ui.utils.InputValidator.validateUsername
-import com.example.assignment.ui.utils.validateConfirmPassword
+import com.example.assignment.ui.utils.RegisterValidator
+import com.example.assignment.ui.utils.RegisterValidator.validateConfirmPassword
+import com.example.assignment.ui.utils.RegisterValidator.validateEmail
+import com.example.assignment.ui.utils.RegisterValidator.validatePassword
+import com.example.assignment.ui.utils.RegisterValidator.validateUsername
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class RegisterViewModel(  private val repository: Repository = FirebaseRepository()
-) : ViewModel() {
+class RegisterViewModel(
+    private val repository: Repository = FirebaseRepository(),
+) : ViewModel(){
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 

@@ -3,11 +3,31 @@ package com.example.assignment.ui.database
 import com.example.assignment.ui.utils.Result
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 class FirebaseRepository : Repository {
 
     private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseFirestore.getInstance()
+
+    override fun isLoggedIn(): Boolean = auth.currentUser != null
+
+    override fun logout() = auth.signOut()
+
+    // NEW: Get email by username from Firestore
+    override suspend fun getEmailByUsername(username: String): String? {
+        return try {
+            val query = db.collection("users")
+                .whereEqualTo("username", username)
+                .get()
+                .await()
+
+            query.documents.firstOrNull()?.getString("email")
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     override suspend fun login(email: String, password: String): Result<User> {
         return try {
@@ -23,28 +43,40 @@ class FirebaseRepository : Repository {
                 )
             )
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Unknown error")
+            Result.Error(mapFirebaseError(e))
         }
     }
 
-    fun isLoggedIn(): Boolean = auth.currentUser != null
-
-    fun logout() = auth.signOut()
-
     override suspend fun signUp(username: String, email: String, password: String): Result<User> {
         return try {
-            // 1. 创建 Firebase 用户
+            // 1. Create Firebase Auth user
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val firebaseUser = result.user
-                ?: return Result.Error("Registration failed")
+            val firebaseUser = result.user ?: return Result.Error("Registration failed")
 
-            // 2. 更新显示名（用户名）
+            // 2. Update display name
             val profileUpdates = UserProfileChangeRequest.Builder()
                 .setDisplayName(username)
                 .build()
             firebaseUser.updateProfile(profileUpdates).await()
 
-            // 3. 返回用户数据
+            // 3. Save to Firestore with separate error handling
+            val userData = hashMapOf(
+                "username" to username,
+                "email" to email,
+                "uid" to firebaseUser.uid,
+                "createdAt" to com.google.firebase.Timestamp.now()
+            )
+
+            try {
+                db.collection("users").document(firebaseUser.uid)
+                    .set(userData)
+                    .await()
+            } catch (e: Exception) {
+                // Log but don't fail — user can still login
+                android.util.Log.e("FirebaseRepository", "Firestore save failed: ${e.message}")
+                // Optionally retry or report to analytics
+            }
+
             Result.Success(
                 User(
                     id = firebaseUser.uid,
@@ -57,6 +89,7 @@ class FirebaseRepository : Repository {
         }
     }
 
+    // FIXED: Use 'e' parameter
     private fun mapFirebaseError(e: Exception): String {
         val msg = e.message ?: "Unknown error"
         return when {

@@ -50,11 +50,9 @@ private fun RegisterScreenContent(
     onEvent: (RegisterEvent) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val boxMaxHeight = maxHeight
-        val boxMaxWidth = maxWidth
         val isLandscape = maxWidth > maxHeight
         val isNarrowPhone = maxWidth < 360.dp
-        val isVeryTallScreen = maxHeight > 1000.dp  // NEW: Detect very tall screens
+        val isVeryTallScreen = maxHeight > 1000.dp
 
         val horizontalPadding = when (windowSize) {
             WindowWidthSizeClass.Compact -> if (isNarrowPhone) 16.dp else 24.dp
@@ -111,8 +109,8 @@ private fun RegisterScreenContent(
                 stackHeader = isNarrowPhone || isLandscape,
                 horizontalPadding = horizontalPadding,
                 bottomPadding = bottomPadding,
-                maxHeight = boxMaxHeight,
-                maxWidth = boxMaxWidth,
+                maxHeight = maxHeight,
+                maxWidth = maxWidth,
                 isLandscape = isLandscape,
                 centerContent = isVeryTallScreen  // NEW
             )
@@ -124,8 +122,8 @@ private fun RegisterScreenContent(
                 titleSize = titleSize,
                 formMaxWidth = formMaxWidth,
                 bottomPadding = bottomPadding,
-                maxHeight = boxMaxHeight,
-                maxWidth = boxMaxWidth,
+                maxHeight = maxHeight,
+                maxWidth = maxWidth,
                 centerContent = isVeryTallScreen  // NEW
             )
 
@@ -136,8 +134,8 @@ private fun RegisterScreenContent(
                 titleSize = titleSize,
                 formMaxWidth = formMaxWidth,
                 bottomPadding = bottomPadding,
-                maxHeight = boxMaxHeight,
-                maxWidth = boxMaxWidth,
+                maxHeight = maxHeight,
+                maxWidth = maxWidth,
                 centerContent = isVeryTallScreen  // NEW
             )
         }
