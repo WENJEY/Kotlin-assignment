@@ -1,10 +1,14 @@
 package com.example.assignment.ui.login
 
 import com.example.assignment.R
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,14 +33,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -503,25 +514,24 @@ private fun LoginForm(
 
             // Identifier field (email or username)
             CustomTextField(
-                label = "Email or Username",
+                label = "Username / Email",
                 value = uiState.identifier,
                 onValueChange = { onEvent(LoginEvent.IdentifierChanged(it)) },
-                placeholder = "Enter email or username",
+                placeholder = "Username / Email",
                 keyboardType = KeyboardType.Text,
-                error = null,  // No format validation error
+                error = null,
                 bodySize = bodySize,
                 buttonHeight = buttonHeight
             )
             Spacer(modifier = Modifier.height(mediumSpacer))
 
             // Password field
-            CustomTextField(
+            CustomPasswordField(
                 label = "Password",
                 value = uiState.password,
                 onValueChange = { onEvent(LoginEvent.PasswordChanged(it)) },
-                placeholder = "**********",
-                keyboardType = KeyboardType.Password,
-                error = null,  // No format validation error
+                placeholder = "Password",
+                error = null,
                 bodySize = bodySize,
                 buttonHeight = buttonHeight
             )
@@ -552,29 +562,16 @@ private fun LoginForm(
             }
 
             // Login button
-            Button(
-                onClick = { onEvent(LoginEvent.LoginClicked) },
-                modifier = Modifier.fillMaxWidth().height(buttonHeight),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF085E99)),
-                border = BorderStroke(1.dp, Color(0x14000000)),
-                enabled = !uiState.isLoading
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "Login",
-                        color = Color.White,
-                        fontSize = buttonTextSize,
-                        fontWeight = FontWeight.SemiBold
-                    )
+            CustomLoginButton(
+                text = "Login",
+                isLoading = uiState.isLoading,
+                buttonHeight = buttonHeight,
+                bodySize = buttonTextSize,
+                onClick = {
+                    onEvent(LoginEvent.LoginClicked)
                 }
-            }
+            )
+
             Spacer(modifier = Modifier.height(tinySpacer))
 
             // Sign up
@@ -623,12 +620,26 @@ internal fun CustomTextField(
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = FieldTint,
                 unfocusedContainerColor = FieldTint,
+                errorContainerColor = FieldTint,
+
                 focusedTextColor = BodyText,
                 unfocusedTextColor = BodyText,
+                errorTextColor = BodyText,
+
+                focusedLabelColor = BodyText,
+                unfocusedLabelColor = BodyText,
+                errorLabelColor = BodyText,
+
+                focusedPlaceholderColor = Color.Gray,
+                unfocusedPlaceholderColor = Color.Gray,
+                errorPlaceholderColor = Color.Gray,
+
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Red,
-                cursorColor = BrandBlue
+                errorIndicatorColor = Color.Transparent,
+
+                cursorColor = BrandBlue,
+                errorCursorColor = BrandBlue
             ),
             modifier = modifier.fillMaxWidth().heightIn(min = buttonHeight)
         )
@@ -638,6 +649,149 @@ internal fun CustomTextField(
                 color = Color.Red,
                 fontSize = bodySize * 0.85f,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+internal fun CustomPasswordField(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    error: String? = null,
+    bodySize: TextUnit,
+    buttonHeight: Dp,
+) {
+    var isPasswordVisible by remember { mutableStateOf(false) }
+
+    Column {
+        Text(
+            text = label,
+            color = BodyText,
+            fontSize = bodySize,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = {
+                Text(
+                    text = if (isPasswordVisible) placeholder else "********",
+                    color = MutedText,
+                    fontSize = bodySize
+                )
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password
+            ),
+            visualTransformation = if (isPasswordVisible) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation(mask = '*')
+            },
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        isPasswordVisible = !isPasswordVisible
+                    }
+                ) {
+                    Icon(
+                        imageVector = if (isPasswordVisible) {
+                            Icons.Filled.Visibility
+                        } else {
+                            Icons.Filled.VisibilityOff
+                        },
+                        contentDescription = if (isPasswordVisible) {
+                            "Hide password"
+                        } else {
+                            "Show password"
+                        },
+                        tint = BrandBlue
+                    )
+                }
+            },
+            shape = FieldShape,
+            isError = error != null,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = FieldTint,
+                unfocusedContainerColor = FieldTint,
+                errorContainerColor = FieldTint,
+
+                focusedTextColor = BodyText,
+                unfocusedTextColor = BodyText,
+                errorTextColor = BodyText,
+
+                focusedLabelColor = BodyText,
+                unfocusedLabelColor = BodyText,
+                errorLabelColor = BodyText,
+
+                focusedPlaceholderColor = Color.Gray,
+                unfocusedPlaceholderColor = Color.Gray,
+                errorPlaceholderColor = Color.Gray,
+
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
+
+                cursorColor = BrandBlue,
+                errorCursorColor = BrandBlue
+            ),
+            modifier = modifier
+                .fillMaxWidth()
+                .heightIn(min = buttonHeight)
+        )
+
+        error?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                fontSize = bodySize * 0.85f,
+                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+internal fun CustomLoginButton(
+    text: String,
+    isLoading: Boolean,
+    buttonHeight: Dp,
+    bodySize: TextUnit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        enabled = !isLoading,
+        shape = ButtonDefaults.shape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = BrandBlue,
+            disabledContainerColor = BrandBlue.copy(alpha = 0.65f)
+        ),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(buttonHeight)
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(22.dp),
+                color = Color.White,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = bodySize,
+                fontWeight = FontWeight.Bold
             )
         }
     }

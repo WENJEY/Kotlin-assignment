@@ -48,18 +48,28 @@ class LoginViewModel(
     private fun login() {
         val state = _uiState.value
 
-        // Only check if fields are empty
         if (state.identifier.isBlank() || state.password.isBlank()) {
             _uiState.update {
-                it.copy(error = "Please enter email/username and password")
+                it.copy(
+                    isLoading = false,
+                    error = "Invalid username/email or password"
+                )
             }
             return
         }
 
-        _uiState.update { it.copy(isLoading = true, error = null) }
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                error = null
+            )
+        }
 
         viewModelScope.launch {
-            val loginError = validator.validateLogin(state.identifier, state.password)
+            val loginError = validator.validateLogin(
+                state.identifier,
+                state.password
+            )
 
             if (loginError != null) {
                 _uiState.update {
@@ -72,7 +82,6 @@ class LoginViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        isLoggedIn = true,
                         navigateTo = ScreenRoutes.Home
                     )
                 }

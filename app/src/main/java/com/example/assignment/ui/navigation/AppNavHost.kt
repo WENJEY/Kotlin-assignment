@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.assignment.ui.login.LoginScreen
 import com.example.assignment.ui.register.RegisterScreen
+import com.example.assignment.ui.profile.ProfileScreen
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -34,6 +35,15 @@ fun MyAppNavHost(windowSize: WindowWidthSizeClass) {
         }
         composable(ScreenRoutes.Home.route) {
             // HomeScreen(navController = navController, windowSize = windowSize)
+        }
+        composable(ScreenRoutes.Scanner.route){
+            // ScannerScreen(navController = navController, windowSize = windowSize)
+        }
+        composable(ScreenRoutes.Profile.route){
+             ProfileScreen(navController = navController, windowSize = windowSize)
+        }
+        composable (ScreenRoutes.ChatBox.route){
+            // ChatBoxScreen (navController = navController , windowSize = windowSize)
         }
     }
 }

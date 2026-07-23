@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.assignment.ui.navigation.ScreenRoutes
 
 @Composable
 fun RegisterScreen(
@@ -31,7 +32,10 @@ fun RegisterScreen(
 
     LaunchedEffect(uiState.navigateTo) {
         uiState.navigateTo?.let { route ->
-            navController.navigate(route.route)
+            navController.navigate(route.route){
+                popUpTo(ScreenRoutes.Register.route) { inclusive = true }
+                launchSingleTop = true
+            }
             viewModel.onEvent(RegisterEvent.NavigationHandled)
         }
     }

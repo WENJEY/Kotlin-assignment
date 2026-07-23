@@ -52,7 +52,7 @@ class LoginValidator(
             identifier
         } else {
             // Lookup email by username
-            repository.getEmailByUsername(identifier) ?: return "User not found"
+            repository.getEmailByUsername(identifier) ?: return "Invalid username/email or password"
         }
 
         // Verify with Firebase

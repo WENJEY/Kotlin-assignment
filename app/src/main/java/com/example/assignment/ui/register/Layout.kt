@@ -1,6 +1,5 @@
 package com.example.assignment.ui.register
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,12 +9,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -26,21 +22,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -50,11 +39,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.assignment.R
-import com.example.assignment.ui.theme.BodyText
-import com.example.assignment.ui.theme.BrandBlue
+import com.example.assignment.ui.login.CustomLoginButton
+import com.example.assignment.ui.login.CustomPasswordField
+import com.example.assignment.ui.login.CustomTextField
 import com.example.assignment.ui.theme.CardShape
-import com.example.assignment.ui.theme.FieldShape
-import com.example.assignment.ui.theme.FieldTint
 import com.example.assignment.ui.theme.LinkBlue
 import com.example.assignment.ui.theme.MutedText
 import com.example.assignment.ui.theme.SurfaceWhite
@@ -445,24 +433,22 @@ private fun RegisterForm(
             )
             Spacer(modifier = Modifier.height(mediumSpacer))
 
-            CustomTextField(
+            CustomPasswordField(
                 label = "Password",
                 value = uiState.password,
                 onValueChange = { onEvent(RegisterEvent.PasswordChanged(it)) },
-                placeholder = "**********",
-                keyboardType = KeyboardType.Password,
+                placeholder = "Password",
                 error = uiState.passwordError,
                 bodySize = bodySize,
                 buttonHeight = buttonHeight
             )
             Spacer(modifier = Modifier.height(mediumSpacer))
 
-            CustomTextField(
+            CustomPasswordField(
                 label = "Confirm Password",
                 value = uiState.confirmPassword,
                 onValueChange = { onEvent(RegisterEvent.ConfirmPasswordChanged(it)) },
-                placeholder = "**********",
-                keyboardType = KeyboardType.Password,
+                placeholder = "Re-enter your password",
                 error = uiState.passwordError,
                 bodySize = bodySize,
                 buttonHeight = buttonHeight
@@ -480,29 +466,15 @@ private fun RegisterForm(
                 Spacer(modifier = Modifier.height(tinySpacer))
             }
 
-            Button(
-                onClick = { onEvent(RegisterEvent.SignUpClicked) },
-                modifier = Modifier.fillMaxWidth().height(buttonHeight),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF085E99)),
-                border = BorderStroke(1.dp, Color(0x14000000)),
-                enabled = !uiState.isLoading
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "Sign Up",
-                        color = Color.White,
-                        fontSize = buttonTextSize,
-                        fontWeight = FontWeight.SemiBold
-                    )
+            CustomLoginButton(
+                text = "Sign Up",
+                isLoading = uiState.isLoading,
+                buttonHeight = buttonHeight,
+                bodySize = buttonTextSize,
+                onClick = {
+                    onEvent(RegisterEvent.SignUpClicked)
                 }
-            }
+            )
             Spacer(modifier = Modifier.height(tinySpacer))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
@@ -577,56 +549,5 @@ private fun HeaderTextBlock(
             lineHeight = titleSize * 1.05f
         )
         Spacer(modifier = Modifier.height(10.dp))
-    }
-}
-
-@Composable
-internal fun CustomTextField(
-    modifier: Modifier = Modifier,
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    error: String? = null,
-    bodySize: TextUnit,
-    buttonHeight: Dp,
-) {
-    Column {
-        Text(
-            text = label,
-            color = BodyText,
-            fontSize = bodySize,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = { Text(text = placeholder, color = MutedText, fontSize = bodySize) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            shape = FieldShape,
-            isError = error != null,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = FieldTint,
-                unfocusedContainerColor = FieldTint,
-                focusedTextColor = BodyText,
-                unfocusedTextColor = BodyText,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Red,
-                cursorColor = BrandBlue
-            ),
-            modifier = modifier.fillMaxWidth().heightIn(min = buttonHeight)
-        )
-        error?.let {
-            Text(
-                text = it,
-                color = Color.Red,
-                fontSize = bodySize * 0.85f,
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-            )
-        }
     }
 }
