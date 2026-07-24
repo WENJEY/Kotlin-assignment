@@ -448,7 +448,7 @@ private fun RegisterForm(
                 label = "Confirm Password",
                 value = uiState.confirmPassword,
                 onValueChange = { onEvent(RegisterEvent.ConfirmPasswordChanged(it)) },
-                placeholder = "Re-enter your password",
+                placeholder = "Password",
                 error = uiState.passwordError,
                 bodySize = bodySize,
                 buttonHeight = buttonHeight

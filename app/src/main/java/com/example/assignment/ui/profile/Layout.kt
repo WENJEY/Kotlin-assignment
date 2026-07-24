@@ -15,8 +15,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Feedback
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -30,14 +36,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.assignment.ui.theme.AssignmentTheme
+import com.example.assignment.ui.utils.bottomItems
 
-private val TextOnGradient = Color.White
-private val DividerOnGradient = Color.White.copy(alpha = 0.55f)
 private val LogoutRed = Color(0xFFFF4D4F)
 private val BottomSelected = Color(0xFF0077D9)
 private val BottomUnselected = Color(0xFF8AA0B5)
@@ -46,7 +53,7 @@ private val BottomUnselected = Color(0xFF8AA0B5)
 fun ProfileCompactLayout(
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit,
-    snackbarHostState: SnackbarHostState,
+    snackBarHostState: SnackbarHostState,
     horizontalPadding: Dp,
     bottomPadding: Dp,
     isLandscape: Boolean,
@@ -56,7 +63,7 @@ fun ProfileCompactLayout(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = {
             ProfileBottomNavigation(
                 selectedTab = uiState.selectedBottomTab,
@@ -73,7 +80,7 @@ fun ProfileCompactLayout(
             if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = TextOnGradient
+                    color = Color.White
                 )
                 return@Box
             }
@@ -88,11 +95,11 @@ fun ProfileCompactLayout(
 
                 ProfileHeader(
                     uiState = uiState,
-                    avatarSize = if (isLandscape) 120.dp else 176.dp,
+                    avatarSize = if (isLandscape) 104.dp else 160.dp,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 42.dp))
+                Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 32.dp))
 
                 ProfileMenu(
                     onEvent = onEvent,
@@ -115,7 +122,7 @@ private fun ProfileHeader(
     ) {
         Text(
             text = "Profile",
-            color = TextOnGradient,
+            color = Color.White,
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold
         )
@@ -148,7 +155,7 @@ private fun ProfileAvatar(
     ) {
         Text(
             text = username.firstOrNull()?.uppercaseChar()?.toString() ?: "U",
-            color = TextOnGradient,
+            color = Color.White,
             style = MaterialTheme.typography.displayLarge,
             fontWeight = FontWeight.Bold
         )
@@ -166,12 +173,12 @@ private fun ProfileGreeting(
     ) {
         Text(
             text = "Welcome",
-            color = TextOnGradient,
+            color = Color.White,
             style = MaterialTheme.typography.headlineSmall
         )
         Text(
             text = username.ifBlank { "User" },
-            color = TextOnGradient,
+            color = Color.White,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -185,36 +192,43 @@ private fun ProfileMenu(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         ProfileMenuItem(
-            iconText = "P",
+            icon = Icons.Filled.Person,
+            description = "profile",
             title = "User Profile",
             onClick = { onEvent(ProfileEvent.UserProfileClicked) }
         )
         ProfileMenuItem(
-            iconText = "L",
+            icon = Icons.Filled.Lock,
+            description = "password",
             title = "Change Password",
-            onClick = { onEvent(ProfileEvent.ChangePasswordClicked) }
+            onClick = { onEvent(ProfileEvent.ChangePasswordClicked) },
         )
         ProfileMenuItem(
-            iconText = "F",
+            icon = Icons.Filled.Feedback,
+            description = "feedback",
             title = "Feedback",
-            onClick = { onEvent(ProfileEvent.FeedbackClicked) }
+            onClick = { onEvent(ProfileEvent.FeedbackClicked) },
         )
         ProfileMenuItem(
-            iconText = "!",
+            icon = Icons.AutoMirrored.Filled.Logout,
+            description = "logout",
             title = "Logout",
+            onClick = { onEvent(ProfileEvent.LogoutClicked) },
             tint = LogoutRed,
-            onClick = { onEvent(ProfileEvent.LogoutClicked) }
+            fontWeight = FontWeight.Bold
         )
     }
 }
 
 @Composable
 private fun ProfileMenuItem(
-    iconText: String,
+    icon: ImageVector,
+    description : String,
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    tint: Color = TextOnGradient
+    tint: Color = Color.White,
+    fontWeight : FontWeight = FontWeight.Normal
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -228,16 +242,10 @@ private fun ProfileMenuItem(
                 .padding(horizontal = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = iconText,
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(tint.copy(alpha = 0.16f)),
-                color = tint,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+            Icon(
+                imageVector = icon,
+                contentDescription = description,
+                tint = tint
             )
 
             Spacer(modifier = Modifier.width(24.dp))
@@ -245,19 +253,13 @@ private fun ProfileMenuItem(
             Text(
                 text = title,
                 modifier = Modifier.weight(1f),
-                color = TextOnGradient,
+                color = tint,
+                fontWeight = fontWeight,
                 style = MaterialTheme.typography.titleLarge
-            )
-
-            Text(
-                text = ">",
-                color = tint.copy(alpha = 0.82f),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
             )
         }
 
-        HorizontalDivider(color = DividerOnGradient)
+        HorizontalDivider(color = Color.White.copy(alpha = 0.55f))
     }
 }
 
@@ -278,12 +280,12 @@ private fun ProfileBottomNavigation(
                 selected = selectedTab == item.tab,
                 onClick = { onEvent(ProfileEvent.BottomTabSelected(item.tab)) },
                 icon = {
-                    Text(
-                        text = item.iconText,
-                        fontWeight = FontWeight.Bold
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.description,
                     )
                 },
-                label = { Text(text = item.label) },
+                label = { Text(text = item.iconText) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = BottomSelected,
                     selectedTextColor = BottomSelected,
@@ -296,14 +298,6 @@ private fun ProfileBottomNavigation(
     }
 }
 
-private data class BottomItem(
-    val tab: ProfileBottomTab,
-    val label: String,
-    val iconText: String
-)
 
-private val bottomItems = listOf(
-    BottomItem(ProfileBottomTab.Home, "Home", "H"),
-    BottomItem(ProfileBottomTab.Profile, "Profile", "P")
-)
+
 

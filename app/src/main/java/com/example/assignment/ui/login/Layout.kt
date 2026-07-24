@@ -3,13 +3,14 @@ package com.example.assignment.ui.login
 import com.example.assignment.R
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -601,6 +603,22 @@ internal fun CustomTextField(
     bodySize: TextUnit,
     buttonHeight: Dp,
 ) {
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val textColor = if (value == placeholder) {
+        Color.Gray
+    } else {
+        BodyText
+    }
+
+    LaunchedEffect(isFocused) {
+        if (isFocused && value == placeholder) {
+            onValueChange("")
+        } else if (!isFocused && value.isBlank()) {
+            onValueChange(placeholder)
+        }
+    }
     Column {
         Text(
             text = label,
@@ -612,7 +630,7 @@ internal fun CustomTextField(
         TextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(text = placeholder, color = MutedText, fontSize = bodySize) },
+            interactionSource = interactionSource,
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = FieldShape,
@@ -622,17 +640,9 @@ internal fun CustomTextField(
                 unfocusedContainerColor = FieldTint,
                 errorContainerColor = FieldTint,
 
-                focusedTextColor = BodyText,
-                unfocusedTextColor = BodyText,
-                errorTextColor = BodyText,
-
-                focusedLabelColor = BodyText,
-                unfocusedLabelColor = BodyText,
-                errorLabelColor = BodyText,
-
-                focusedPlaceholderColor = Color.Gray,
-                unfocusedPlaceholderColor = Color.Gray,
-                errorPlaceholderColor = Color.Gray,
+                focusedTextColor = textColor,
+                unfocusedTextColor = textColor,
+                errorTextColor = textColor,
 
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
@@ -641,7 +651,9 @@ internal fun CustomTextField(
                 cursorColor = BrandBlue,
                 errorCursorColor = BrandBlue
             ),
-            modifier = modifier.fillMaxWidth().heightIn(min = buttonHeight)
+            modifier = modifier
+                .fillMaxWidth()
+                .heightIn(min = buttonHeight)
         )
         error?.let {
             Text(
@@ -666,6 +678,23 @@ internal fun CustomPasswordField(
     buttonHeight: Dp,
 ) {
     var isPasswordVisible by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val textColor = if (value == placeholder) {
+        Color.Gray
+    } else {
+        BodyText
+    }
+
+    LaunchedEffect(isFocused) {
+        if (isFocused && value == placeholder) {
+            onValueChange("")
+        } else if (!isFocused && value.isBlank()) {
+            onValueChange(placeholder)
+        }
+    }
+
+
 
     Column {
         Text(
@@ -680,13 +709,7 @@ internal fun CustomPasswordField(
         TextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = if (isPasswordVisible) placeholder else "********",
-                    color = MutedText,
-                    fontSize = bodySize
-                )
-            },
+            interactionSource = interactionSource,
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password
@@ -724,9 +747,9 @@ internal fun CustomPasswordField(
                 unfocusedContainerColor = FieldTint,
                 errorContainerColor = FieldTint,
 
-                focusedTextColor = BodyText,
-                unfocusedTextColor = BodyText,
-                errorTextColor = BodyText,
+                focusedTextColor = textColor,
+                unfocusedTextColor = textColor,
+                errorTextColor = textColor,
 
                 focusedLabelColor = BodyText,
                 unfocusedLabelColor = BodyText,

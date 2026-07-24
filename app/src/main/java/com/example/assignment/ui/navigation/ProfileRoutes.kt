@@ -7,5 +7,5 @@ sealed class ProfileRoutes(val route: String){
     data object UserProfile : ProfileRoutes("userProfile")
     data object ChangePassword : ProfileRoutes("changePassword")
     data object Feedback : ProfileRoutes("feedback")
-    data object Logout : ProfileRoutes("logout")
+
 }

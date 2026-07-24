@@ -31,15 +31,16 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState.navigateTo) {
         uiState.navigateTo?.let { route ->
             when (route) {
                 ScreenRoutes.Login.route -> {
                     navController.navigate(route) {
-                        popUpTo(ProfileRoutes.Profile.route) { inclusive = true }
-                        launchSingleTop = true
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        }
                     }
                 }
 
@@ -64,7 +65,7 @@ fun ProfileScreen(
     ProfileScreenContent(
         uiState = uiState,
         windowSize = windowSize,
-        snackbarHostState = snackbarHostState,
+        snackBarHostState = snackBarHostState,
         onEvent = viewModel::onEvent
     )
 }
@@ -73,7 +74,7 @@ fun ProfileScreen(
 private fun ProfileScreenContent(
     uiState: ProfileUiState,
     windowSize: WindowWidthSizeClass,
-    snackbarHostState: SnackbarHostState,
+    snackBarHostState: SnackbarHostState,
     onEvent: (ProfileEvent) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -110,7 +111,7 @@ private fun ProfileScreenContent(
             WindowWidthSizeClass.Compact -> ProfileCompactLayout(
                 uiState = uiState,
                 onEvent = onEvent,
-                snackbarHostState = snackbarHostState,
+                snackBarHostState = snackBarHostState,
                 horizontalPadding = horizontalPadding,
                 bottomPadding = bottomPadding,
                 isLandscape = isLandscape,
@@ -120,7 +121,7 @@ private fun ProfileScreenContent(
             WindowWidthSizeClass.Medium -> ProfileCompactLayout(
                 uiState = uiState,
                 onEvent = onEvent,
-                snackbarHostState = snackbarHostState,
+                snackBarHostState = snackBarHostState,
                 horizontalPadding = horizontalPadding,
                 bottomPadding = bottomPadding,
                 isLandscape = isLandscape,
@@ -130,7 +131,7 @@ private fun ProfileScreenContent(
             else -> ProfileCompactLayout(
                 uiState = uiState,
                 onEvent = onEvent,
-                snackbarHostState = snackbarHostState,
+                snackBarHostState = snackBarHostState,
                 horizontalPadding = horizontalPadding,
                 bottomPadding = bottomPadding,
                 isLandscape = isLandscape,

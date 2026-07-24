@@ -3,6 +3,7 @@ package com.example.assignment.ui.profile
 import androidx.lifecycle.ViewModel
 import com.example.assignment.ui.navigation.ProfileRoutes
 import com.example.assignment.ui.navigation.ScreenRoutes
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +24,10 @@ class ProfileViewModel : ViewModel() {
             ProfileEvent.UserProfileClicked -> navigateTo(ProfileRoutes.UserProfile.route)
             ProfileEvent.ChangePasswordClicked -> navigateTo(ProfileRoutes.ChangePassword.route)
             ProfileEvent.FeedbackClicked -> navigateTo(ProfileRoutes.Feedback.route)
-            ProfileEvent.LogoutClicked -> navigateTo(ScreenRoutes.Login.route)
+            ProfileEvent.LogoutClicked -> {
+                FirebaseAuth.getInstance().signOut()
+                navigateTo(ScreenRoutes.Login.route)
+            }
             ProfileEvent.NavigationHandled -> clearNavigation()
             is ProfileEvent.BottomTabSelected -> selectBottomTab(event.tab)
         }
@@ -44,6 +48,8 @@ class ProfileViewModel : ViewModel() {
     private fun selectBottomTab(tab: ProfileBottomTab) {
         val route = when (tab) {
             ProfileBottomTab.Home -> ScreenRoutes.Home.route
+            ProfileBottomTab.Scanner -> ScreenRoutes.Scanner.route
+            ProfileBottomTab.ChatBox -> ScreenRoutes.ChatBox.route
             ProfileBottomTab.Profile -> null
         }
 

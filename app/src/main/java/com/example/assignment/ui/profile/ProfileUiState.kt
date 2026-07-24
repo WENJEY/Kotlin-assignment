@@ -10,6 +10,6 @@ data class ProfileUiState(
 )
 
 enum class ProfileBottomTab {
-    Home, Profile
+    Home, Scanner , ChatBox, Profile
 }
 

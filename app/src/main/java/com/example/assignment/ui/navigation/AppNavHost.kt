@@ -20,7 +20,7 @@ fun MyAppNavHost(windowSize: WindowWidthSizeClass) {
     val startDestination = if (auth.currentUser != null) {
         ScreenRoutes.Home.route
     } else {
-        ScreenRoutes.Login.route
+        ScreenRoutes.Profile.route
     }
 
     NavHost(
