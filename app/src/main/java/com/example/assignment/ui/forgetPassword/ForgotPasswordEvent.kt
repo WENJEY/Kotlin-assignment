@@ -1,4 +1,5 @@
-package com.example.assignment.ui.forgetPassword
+
+/**package com.example.assignment.ui.forgetPassword
 
 sealed class ForgotPasswordEvent {
     data class EmailChanged(val value : String) : ForgotPasswordEvent()
@@ -9,3 +10,6 @@ sealed class ForgotPasswordEvent {
 
     data object NavigationHandled : ForgotPasswordEvent();
 }
+
+ **/
+

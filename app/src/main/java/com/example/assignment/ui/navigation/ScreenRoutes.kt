@@ -8,5 +8,6 @@ sealed class ScreenRoutes(val route: String) {
     data object Scanner : ScreenRoutes ("scanner")
     data object Profile : ScreenRoutes("profile")
     data object ChatBox : ScreenRoutes("chatbox")
+    data object ForgotPassword : ScreenRoutes ("forgetPassword")
 
 }

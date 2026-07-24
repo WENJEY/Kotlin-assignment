@@ -1,107 +1,169 @@
-package com.example.assignment.ui.forgetPassword
 
+/**package com.example.assignment.ui.forgotpassword
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.assignment.ui.forgetPassword.ForgotPasswordUiState
+import com.example.assignment.ui.forgetPassword.ForgotPasswordViewModel
+import com.example.assignment.ui.navigation.ScreenRoutes
 
 @Composable
 fun ForgotPasswordScreen(
-    email: String,
-    onEmailChange: (String) -> Unit,
-    onSendClick: () -> Unit,
-    onBackClick: () -> Unit,
-    isLoading: Boolean = false
+    navController: NavController,
+    windowSize: WindowWidthSizeClass,
+    viewModel: ForgotPasswordViewModel = viewModel()
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF63B8FF),
-                        Color(0xFF1E88E5)
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.navigateTo) {
+        uiState.navigateTo?.let { route ->
+
+            navController.navigate(route.route) {
+                popUpTo(ScreenRoutes.ForgotPassword.route) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+
+            viewModel.onEvent(ForgotPasswordEvent.NavigationHandled)
+        }
+    }
+
+    ForgotPasswordContent(
+        uiState = uiState,
+        windowSize = windowSize,
+        onEvent = viewModel::onEvent
+    )
+}
+
+@Composable
+private fun ForgotPasswordContent(
+    uiState: ForgotPasswordUiState,
+    windowSize: WindowWidthSizeClass,
+    onEvent: (ForgotPasswordEvent) -> Unit
+) {
+
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
+    ) {
+
+        val isLandscape = maxWidth > maxHeight
+        val isNarrowPhone = maxWidth < 360.dp
+        val isVeryTallScreen = maxHeight > 1000.dp
+
+        val horizontalPadding = when(windowSize){
+            WindowWidthSizeClass.Compact -> if(isNarrowPhone) 16.dp else 24.dp
+            WindowWidthSizeClass.Medium -> 48.dp
+            WindowWidthSizeClass.Expanded -> 64.dp
+            else -> 24.dp
+        }
+
+        val titleSize: TextUnit = when{
+            maxWidth < 340.dp -> 27.sp
+            windowSize == WindowWidthSizeClass.Compact -> 34.sp
+            windowSize == WindowWidthSizeClass.Medium -> 40.sp
+            else -> 36.sp
+        }
+
+        val logoSize = when(windowSize){
+            WindowWidthSizeClass.Compact -> if(isNarrowPhone) 108.dp else 140.dp
+            WindowWidthSizeClass.Medium -> 144.dp
+            WindowWidthSizeClass.Expanded -> 188.dp
+            else -> 144.dp
+        }
+
+        val formMaxWidth = when(windowSize){
+            WindowWidthSizeClass.Compact -> if(isLandscape) 480.dp else Dp.Unspecified
+            WindowWidthSizeClass.Medium -> 520.dp
+            WindowWidthSizeClass.Expanded -> 480.dp
+            else -> Dp.Unspecified
+        }
+
+        val bottomPadding =
+            WindowInsets.navigationBars
+                .asPaddingValues()
+                .calculateBottomPadding()
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        listOf(
+                            Color(0xFF0A4F84),
+                            Color(0xFF1672B8),
+                            Color(0xFF43B7E8)
+                        )
                     )
                 )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        ForgotPasswordCard(
-            email = email,
-            onEmailChange = onEmailChange,
-            onSendClick = onSendClick,
-            onBackClick = onBackClick,
-            isLoading = isLoading
         )
-    }
-}
-@Composable
-private fun ForgotPasswordCard(
-    email: String,
-    onEmailChange: (String) -> Unit,
-    onSendClick: () -> Unit,
-    onBackClick: () -> Unit,
-    isLoading: Boolean
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth(0.88f)
-            .widthIn(max = 420.dp),
-        shape = RoundedCornerShape(20.dp),
-        shadowElevation = 8.dp,
-        color = Color.White
-    ) {
 
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        when(windowSize){
 
-            Text(
-                "Forgot Password",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF0D47A1)
-            )
+            WindowWidthSizeClass.Compact ->
 
-            Spacer(Modifier.height(8.dp))
+                ForgotPasswordCompactLayout(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    logoSize = logoSize,
+                    titleSize = titleSize,
+                    formMaxWidth = formMaxWidth,
+                    horizontalPadding = horizontalPadding,
+                    bottomPadding = bottomPadding,
+                    maxHeight = maxHeight,
+                    maxWidth = maxWidth,
+                    isLandscape = isLandscape,
+                    centerContent = isVeryTallScreen
+                )
 
-            Text(
-                "Enter your email to reset your password",
-                textAlign = TextAlign.Center,
-                color = Color.Gray
-            )
+            WindowWidthSizeClass.Medium ->
 
-            Spacer(Modifier.height(28.dp))
+                ForgotPasswordMediumLayout(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    logoSize = logoSize,
+                    titleSize = titleSize,
+                    formMaxWidth = formMaxWidth,
+                    bottomPadding = bottomPadding,
+                    maxHeight = maxHeight,
+                    maxWidth = maxWidth,
+                    centerContent = isVeryTallScreen
+                )
 
-            CustomTextField(
-                label = "",
-                value = email,
-                onValueChange = onEmailChange,
-                placeholder = "Enter your email address",
-                keyboardType = KeyboardType.Email,
-                bodySize = 15.sp,
-                buttonHeight = 56.dp
-            )
+            else ->
 
-            Spacer(Modifier.height(20.dp))
-
-            CustomLoginButton(
-                text = "Send Reset Link",
-                isLoading = isLoading,
-                buttonHeight = 54.dp,
-                bodySize = 16.sp,
-                onClick = onSendClick
-            )
-
-            Spacer(Modifier.height(18.dp))
-
-            Text(
-                text = "Back to Login",
-                color = Color(0xFF0D47A1),
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable(onClick = onBackClick)
-            )
+                ForgotPasswordExpandedLayout(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    logoSize = logoSize,
+                    titleSize = titleSize,
+                    formMaxWidth = formMaxWidth,
+                    bottomPadding = bottomPadding,
+                    maxHeight = maxHeight,
+                    maxWidth = maxWidth,
+                    centerContent = isVeryTallScreen
+                )
         }
     }
 }
+ **/
