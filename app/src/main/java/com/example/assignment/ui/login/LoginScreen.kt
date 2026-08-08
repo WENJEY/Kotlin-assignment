@@ -33,7 +33,7 @@ fun LoginScreen(
 
     LaunchedEffect(uiState.navigateTo) {
         uiState.navigateTo?.let { route ->
-            if (route == ScreenRoutes.Home) {
+            if (route == ScreenRoutes.Profile) {
                 navController.navigate(route.route) {
                     popUpTo(ScreenRoutes.Login.route) { inclusive = true }
                     launchSingleTop = true

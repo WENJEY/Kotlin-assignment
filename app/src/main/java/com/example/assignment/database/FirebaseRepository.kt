@@ -1,12 +1,15 @@
-package com.example.assignment.ui.database
+package com.example.assignment.database
 
+import android.util.Log
 import com.example.assignment.ui.utils.Result
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 class FirebaseRepository : Repository {
+
 
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
@@ -64,7 +67,7 @@ class FirebaseRepository : Repository {
                 "username" to username,
                 "email" to email,
                 "uid" to firebaseUser.uid,
-                "createdAt" to com.google.firebase.Timestamp.now()
+                "createdAt" to Timestamp.now()
             )
 
             try {
@@ -73,7 +76,7 @@ class FirebaseRepository : Repository {
                     .await()
             } catch (e: Exception) {
                 // Log but don't fail — user can still login
-                android.util.Log.e("FirebaseRepository", "Firestore save failed: ${e.message}")
+                Log.e("FirebaseRepository", "Firestore save failed: ${e.message}")
                 // Optionally retry or report to analytics
             }
 

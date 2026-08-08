@@ -1,7 +1,7 @@
 package com.example.assignment.ui.utils
 
-import com.example.assignment.ui.database.FirebaseRepository
-import com.example.assignment.ui.database.Repository
+import com.example.assignment.database.FirebaseRepository
+import com.example.assignment.database.Repository
 
 object RegisterValidator {
      fun validateEmail(email: String): String? = when {

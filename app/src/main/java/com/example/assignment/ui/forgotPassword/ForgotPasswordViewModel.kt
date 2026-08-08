@@ -1,5 +1,5 @@
-
-/**package com.example.assignment.ui.forgetPassword
+package com.example.assignment.ui.forgotPassword
+/**package com.example.assignment.ui.forgotPassword
 
 import androidx.lifecycle.ViewModel
 import com.example.assignment.ui.login.LoginUiState

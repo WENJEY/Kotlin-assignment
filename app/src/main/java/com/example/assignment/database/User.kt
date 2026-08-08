@@ -1,4 +1,4 @@
-package com.example.assignment.ui.database
+package com.example.assignment.database
 
 data class User(
     val id: String = "",

@@ -14,13 +14,12 @@ import com.google.firebase.auth.FirebaseAuth
 fun MyAppNavHost(windowSize: WindowWidthSizeClass) {
     val navController = rememberNavController()
     val auth = FirebaseAuth.getInstance()
-    FirebaseAuth.getInstance().signOut()
 
     // Check already login or not
     val startDestination = if (auth.currentUser != null) {
-        ScreenRoutes.Home.route
-    } else {
         ScreenRoutes.Profile.route
+    } else {
+        ScreenRoutes.Login.route
     }
 
     NavHost(
@@ -33,17 +32,18 @@ fun MyAppNavHost(windowSize: WindowWidthSizeClass) {
         composable(ScreenRoutes.Register.route) {
              RegisterScreen(navController = navController, windowSize = windowSize)
         }
-        composable(ScreenRoutes.Home.route) {
-            // HomeScreen(navController = navController, windowSize = windowSize)
+        /**composable(ScreenRoutes.Home.route) {
+             HomeScreen(navController = navController, windowSize = windowSize)
         }
         composable(ScreenRoutes.Scanner.route){
             // ScannerScreen(navController = navController, windowSize = windowSize)
-        }
+        }**/
         composable(ScreenRoutes.Profile.route){
              ProfileScreen(navController = navController, windowSize = windowSize)
         }
+        /**
         composable (ScreenRoutes.ChatBox.route){
-            // ChatBoxScreen (navController = navController , windowSize = windowSize)
-        }
+             ChatBoxScreen (navController = navController , windowSize = windowSize)
+        }**/
     }
 }

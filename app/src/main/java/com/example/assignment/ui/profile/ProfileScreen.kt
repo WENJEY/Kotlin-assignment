@@ -38,9 +38,10 @@ fun ProfileScreen(
             when (route) {
                 ScreenRoutes.Login.route -> {
                     navController.navigate(route) {
-                        popUpTo(navController.graph.startDestinationId) {
+                        popUpTo(ScreenRoutes.Profile.route) {
                             inclusive = true
                         }
+                        launchSingleTop = true
                     }
                 }
 
@@ -118,22 +119,20 @@ private fun ProfileScreenContent(
                 centerContent = isVeryTallScreen
             )
 
-            WindowWidthSizeClass.Medium -> ProfileCompactLayout(
+            WindowWidthSizeClass.Medium -> ProfileMediumLayout(
                 uiState = uiState,
                 onEvent = onEvent,
                 snackBarHostState = snackBarHostState,
                 horizontalPadding = horizontalPadding,
-                bottomPadding = bottomPadding,
                 isLandscape = isLandscape,
                 centerContent = isVeryTallScreen
             )
 
-            else -> ProfileCompactLayout(
+            WindowWidthSizeClass.Expanded -> ProfileExpandedLayout(
                 uiState = uiState,
                 onEvent = onEvent,
                 snackBarHostState = snackBarHostState,
                 horizontalPadding = horizontalPadding,
-                bottomPadding = bottomPadding,
                 isLandscape = isLandscape,
                 centerContent = isVeryTallScreen
             )

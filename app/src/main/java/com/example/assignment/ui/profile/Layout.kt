@@ -27,6 +27,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -42,8 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.assignment.ui.theme.AssignmentTheme
-import com.example.assignment.ui.utils.bottomItems
+import com.example.assignment.ui.utils.profileItems
 
 private val LogoutRed = Color(0xFFFF4D4F)
 private val BottomSelected = Color(0xFF0077D9)
@@ -66,7 +68,7 @@ fun ProfileCompactLayout(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = {
             ProfileBottomNavigation(
-                selectedTab = uiState.selectedBottomTab,
+                selectedTab = uiState.selectedTab,
                 onEvent = onEvent
             )
         }
@@ -105,6 +107,112 @@ fun ProfileCompactLayout(
                     onEvent = onEvent,
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileMediumLayout(
+    uiState: ProfileUiState,
+    onEvent: (ProfileEvent) -> Unit,
+    snackBarHostState: SnackbarHostState,
+    horizontalPadding: Dp,
+    isLandscape: Boolean,
+    centerContent: Boolean,
+    modifier: Modifier = Modifier
+) {
+    ProfileRailLayoutContent(
+        uiState = uiState,
+        onEvent = onEvent,
+        snackBarHostState = snackBarHostState,
+        horizontalPadding = horizontalPadding,
+        isLandscape = isLandscape,
+        centerContent = centerContent,
+        railWidth = 152.dp,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ProfileExpandedLayout(
+    uiState: ProfileUiState,
+    onEvent: (ProfileEvent) -> Unit,
+    snackBarHostState: SnackbarHostState,
+    horizontalPadding: Dp,
+    isLandscape: Boolean,
+    centerContent: Boolean,
+    modifier: Modifier = Modifier
+) {
+    ProfileRailLayoutContent(
+        uiState = uiState,
+        onEvent = onEvent,
+        snackBarHostState = snackBarHostState,
+        horizontalPadding = horizontalPadding,
+        isLandscape = isLandscape,
+        centerContent = centerContent,
+        railWidth = 196.dp,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun ProfileRailLayoutContent(
+    uiState: ProfileUiState,
+    onEvent: (ProfileEvent) -> Unit,
+    snackBarHostState: SnackbarHostState,
+    horizontalPadding: Dp,
+    isLandscape: Boolean,
+    centerContent: Boolean,
+    railWidth: Dp,
+    modifier: Modifier = Modifier
+) {
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = Color.Transparent,
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
+    ) { innerPadding ->
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            ProfileNavigationRail(
+                selectedTab = uiState.selectedTab,
+                onEvent = onEvent,
+                railWidth = railWidth
+            )
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.White
+                    )
+                    return@Box
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = horizontalPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(if (centerContent) 56.dp else 20.dp))
+
+                    ProfileHeader(
+                        uiState = uiState,
+                        avatarSize = if (isLandscape) 104.dp else 160.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 32.dp))
+
+                    ProfileMenu(
+                        onEvent = onEvent,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }
@@ -265,7 +373,7 @@ private fun ProfileMenuItem(
 
 @Composable
 private fun ProfileBottomNavigation(
-    selectedTab: ProfileBottomTab,
+    selectedTab: ProfileTab,
     onEvent: (ProfileEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -275,10 +383,10 @@ private fun ProfileBottomNavigation(
             .navigationBarsPadding(),
         containerColor = Color.White
     ) {
-        bottomItems.forEach { item ->
+        profileItems.forEach { item ->
             NavigationBarItem(
                 selected = selectedTab == item.tab,
-                onClick = { onEvent(ProfileEvent.BottomTabSelected(item.tab)) },
+                onClick = { onEvent(ProfileEvent.TabSelected(item.tab)) },
                 icon = {
                     Icon(
                         imageVector = item.icon,
@@ -294,6 +402,82 @@ private fun ProfileBottomNavigation(
                     unselectedTextColor = BottomUnselected
                 )
             )
+        }
+    }
+}
+
+@Composable
+private fun ProfileNavigationRail(
+    selectedTab: ProfileTab,
+    onEvent: (ProfileEvent) -> Unit,
+    railWidth: Dp,
+    modifier: Modifier = Modifier
+) {
+    NavigationRail(
+        modifier = modifier
+            .width(railWidth)
+            .navigationBarsPadding(),
+        containerColor = Color.White
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+
+        profileItems.forEach { item ->
+            val selected = selectedTab == item.tab
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(horizontal = 8.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(if (selected) BottomSelected.copy(alpha = 0.12f) else Color.Transparent)
+                    .clickable { onEvent(ProfileEvent.TabSelected(item.tab)) }
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val tint = if (selected) BottomSelected else BottomUnselected
+                Icon(
+                    imageVector = item.icon,
+                    contentDescription = item.description,
+                    tint = tint
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = item.iconText,
+                    color = tint,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun ProfileVerticalNavigation(
+    selectedTab: ProfileTab,
+    onEvent: (ProfileEvent) -> Unit,
+    modifier: Modifier = Modifier
+){
+    Row(modifier = Modifier.fillMaxSize()) {
+        NavigationRail(containerColor = Color.White) {
+            profileItems.forEach { item ->
+                NavigationRailItem(
+                    selected = selectedTab == item.tab,
+                    onClick = { onEvent(ProfileEvent.TabSelected(item.tab)) },
+                    icon = {
+                        Icon(item.icon, contentDescription = item.description)
+                    },
+                    label = { Text(item.iconText) },
+                    colors = NavigationRailItemDefaults.colors(
+                        selectedIconColor = BottomSelected,
+                        selectedTextColor = BottomSelected,
+                        indicatorColor = BottomSelected.copy(alpha = 0.12f),
+                        unselectedIconColor = BottomUnselected,
+                        unselectedTextColor = BottomUnselected
+                    )
+                )
+            }
         }
     }
 }

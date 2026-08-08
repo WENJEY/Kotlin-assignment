@@ -29,7 +29,7 @@ class ProfileViewModel : ViewModel() {
                 navigateTo(ScreenRoutes.Login.route)
             }
             ProfileEvent.NavigationHandled -> clearNavigation()
-            is ProfileEvent.BottomTabSelected -> selectBottomTab(event.tab)
+            is ProfileEvent.TabSelected -> selectTab(event.tab)
         }
     }
 
@@ -45,17 +45,17 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    private fun selectBottomTab(tab: ProfileBottomTab) {
+    private fun selectTab(tab: ProfileTab) {
         val route = when (tab) {
-            ProfileBottomTab.Home -> ScreenRoutes.Home.route
-            ProfileBottomTab.Scanner -> ScreenRoutes.Scanner.route
-            ProfileBottomTab.ChatBox -> ScreenRoutes.ChatBox.route
-            ProfileBottomTab.Profile -> null
+            ProfileTab.Home -> ScreenRoutes.Home.route
+            ProfileTab.Scanner -> ScreenRoutes.Scanner.route
+            ProfileTab.ChatBox -> ScreenRoutes.ChatBox.route
+            ProfileTab.Profile -> null
         }
 
         _uiState.update {
             it.copy(
-                selectedBottomTab = tab,
+                selectedTab = tab,
                 navigateTo = route
             )
         }

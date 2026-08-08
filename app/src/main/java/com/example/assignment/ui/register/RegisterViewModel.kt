@@ -2,8 +2,8 @@ package com.example.assignment.ui.register
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.assignment.ui.database.FirebaseRepository
-import com.example.assignment.ui.database.Repository
+import com.example.assignment.database.FirebaseRepository
+import com.example.assignment.database.Repository
 import com.example.assignment.ui.navigation.ScreenRoutes
 import com.example.assignment.ui.utils.RegisterValidator.validateConfirmPassword
 import com.example.assignment.ui.utils.RegisterValidator.validateEmail
@@ -127,7 +127,7 @@ class RegisterViewModel(
                         it.copy(
                             isLoading = false,
                             isRegistered = true,
-                            navigateTo = ScreenRoutes.Home
+                            navigateTo = ScreenRoutes.Profile
                         )
                     }
                 }

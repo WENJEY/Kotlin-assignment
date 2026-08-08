@@ -82,7 +82,7 @@ class LoginViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        navigateTo = ScreenRoutes.Home
+                        navigateTo = ScreenRoutes.Profile
                     )
                 }
             }

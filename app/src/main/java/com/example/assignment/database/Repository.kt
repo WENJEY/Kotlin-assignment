@@ -1,4 +1,4 @@
-package com.example.assignment.ui.database
+package com.example.assignment.database
 
 import com.example.assignment.ui.utils.Result
 

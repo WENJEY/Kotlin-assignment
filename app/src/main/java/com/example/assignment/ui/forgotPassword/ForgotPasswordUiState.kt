@@ -1,4 +1,6 @@
-package com.example.assignment.ui.forgetPassword
+package com.example.assignment.ui.forgotPassword
+/**
+package com.example.assignment.ui.forgotPassword
 
 data class ForgotPasswordUiState(
     val email: String = "",
@@ -7,3 +9,5 @@ data class ForgotPasswordUiState(
     val error: String? = null,
     val navigateBack: Boolean = false
 )
+
+**/

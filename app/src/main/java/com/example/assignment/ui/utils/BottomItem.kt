@@ -6,18 +6,18 @@ import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.assignment.ui.profile.ProfileBottomTab
+import com.example.assignment.ui.profile.ProfileTab
 
-internal data class BottomItem(
-    val tab: ProfileBottomTab,
+internal data class ProfileItem(
+    val tab: ProfileTab,
     val icon: ImageVector,
     val description : String,
     val iconText: String
 )
 
-internal val bottomItems = listOf(
-    BottomItem(ProfileBottomTab.Home, Icons.Filled.Home, "home", "Home"),
-    BottomItem(ProfileBottomTab.Scanner, Icons.Filled.DocumentScanner, "scanner","Scanner"),
-    BottomItem(ProfileBottomTab.ChatBox, Icons.AutoMirrored.Filled.Chat, "chatbox","ChatBox"),
-    BottomItem(ProfileBottomTab.Profile, Icons.Filled.Person, "profile","Profile")
+internal val profileItems = listOf(
+    ProfileItem(ProfileTab.Home, Icons.Filled.Home, "home", "Home"),
+    ProfileItem(ProfileTab.Scanner, Icons.Filled.DocumentScanner, "scanner","Scanner"),
+    ProfileItem(ProfileTab.ChatBox, Icons.AutoMirrored.Filled.Chat, "chatbox","ChatBox"),
+    ProfileItem(ProfileTab.Profile, Icons.Filled.Person, "profile","Profile")
 )
