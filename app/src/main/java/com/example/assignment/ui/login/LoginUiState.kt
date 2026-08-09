@@ -1,6 +1,6 @@
 package com.example.assignment.ui.login
 
-import com.example.assignment.ui.navigation.ScreenRoutes
+import com.example.assignment.navigation.ScreenRoutes
 
 data class LoginUiState(
     val identifier: String = "",

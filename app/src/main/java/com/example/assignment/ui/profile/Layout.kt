@@ -2,19 +2,24 @@ package com.example.assignment.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Feedback
@@ -27,29 +32,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.assignment.ui.utils.profileItems
+import com.example.assignment.ui.utils.bottomProfileItems
+import com.example.assignment.ui.utils.sideProfileItems
 
 private val LogoutRed = Color(0xFFFF4D4F)
 private val BottomSelected = Color(0xFF0077D9)
 private val BottomUnselected = Color(0xFF8AA0B5)
+
+
+// ==================== COMPACT (Phone) ====================
 
 @Composable
 fun ProfileCompactLayout(
@@ -62,6 +69,7 @@ fun ProfileCompactLayout(
     centerContent: Boolean,
     modifier: Modifier = Modifier
 ) {
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
@@ -87,30 +95,19 @@ fun ProfileCompactLayout(
                 return@Box
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = horizontalPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(if (centerContent) 56.dp else 20.dp))
-
-                ProfileHeader(
-                    uiState = uiState,
-                    avatarSize = if (isLandscape) 104.dp else 160.dp,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 32.dp))
-
-                ProfileMenu(
-                    onEvent = onEvent,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            ProfileContent(
+                uiState = uiState,
+                onEvent = onEvent,
+                horizontalPadding = horizontalPadding,
+                isLandscape = isLandscape,
+                centerContent = centerContent,
+                windowSize = WindowWidthSizeClass.Compact
+            )
         }
     }
 }
+
+// ==================== MEDIUM (Small Tablet / Landscape) ====================
 
 @Composable
 fun ProfileMediumLayout(
@@ -122,17 +119,45 @@ fun ProfileMediumLayout(
     centerContent: Boolean,
     modifier: Modifier = Modifier
 ) {
-    ProfileRailLayoutContent(
-        uiState = uiState,
-        onEvent = onEvent,
-        snackBarHostState = snackBarHostState,
-        horizontalPadding = horizontalPadding,
-        isLandscape = isLandscape,
-        centerContent = centerContent,
-        railWidth = 152.dp,
-        modifier = modifier
-    )
+    val scrollState = rememberScrollState()
+
+    Row(modifier = modifier.fillMaxSize()) {
+        // Compact rail on the left
+        ProfileNavigationRail(
+            selectedTab = uiState.selectedTab,
+            onEvent = onEvent,
+            showLabels = false, // icons only for medium
+            modifier = Modifier.fillMaxHeight()
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .verticalScroll(scrollState)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color.White
+                )
+                return@Box
+            }
+
+            ProfileContent(
+                uiState = uiState,
+                onEvent = onEvent,
+                horizontalPadding = horizontalPadding,
+                isLandscape = isLandscape,
+                centerContent = centerContent,
+                windowSize = WindowWidthSizeClass.Medium
+            )
+        }
+    }
 }
+
+// ==================== EXPANDED (Large Tablet / Desktop) ====================
 
 @Composable
 fun ProfileExpandedLayout(
@@ -144,79 +169,90 @@ fun ProfileExpandedLayout(
     centerContent: Boolean,
     modifier: Modifier = Modifier
 ) {
-    ProfileRailLayoutContent(
-        uiState = uiState,
-        onEvent = onEvent,
-        snackBarHostState = snackBarHostState,
-        horizontalPadding = horizontalPadding,
-        isLandscape = isLandscape,
-        centerContent = centerContent,
-        railWidth = 196.dp,
-        modifier = modifier
-    )
-}
+    val scrollState = rememberScrollState()
 
-@Composable
-private fun ProfileRailLayoutContent(
-    uiState: ProfileUiState,
-    onEvent: (ProfileEvent) -> Unit,
-    snackBarHostState: SnackbarHostState,
-    horizontalPadding: Dp,
-    isLandscape: Boolean,
-    centerContent: Boolean,
-    railWidth: Dp,
-    modifier: Modifier = Modifier
-) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
-    ) { innerPadding ->
-        Row(
+    Row(modifier = modifier.fillMaxSize()) {
+        // Wide rail with labels always visible
+        ProfileNavigationRail(
+            selectedTab = uiState.selectedTab,
+            onEvent = onEvent,
+            showLabels = true, // labels visible for expanded
+            modifier = Modifier.fillMaxHeight()
+        )
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .verticalScroll(scrollState)
+
         ) {
-            ProfileNavigationRail(
-                selectedTab = uiState.selectedTab,
-                onEvent = onEvent,
-                railWidth = railWidth
-            )
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color.White
+                )
+                return@Box
+            }
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = Color.White
-                    )
-                    return@Box
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = horizontalPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.height(if (centerContent) 56.dp else 20.dp))
-
-                    ProfileHeader(
+            // Center content on large screens
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Box(modifier = Modifier.width(600.dp)) {
+                    ProfileContent(
                         uiState = uiState,
-                        avatarSize = if (isLandscape) 104.dp else 160.dp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 32.dp))
-
-                    ProfileMenu(
                         onEvent = onEvent,
-                        modifier = Modifier.fillMaxWidth()
+                        horizontalPadding = horizontalPadding,
+                        isLandscape = isLandscape,
+                        centerContent = centerContent,
+                        windowSize = WindowWidthSizeClass.Expanded
                     )
                 }
             }
         }
     }
 }
+
+// ==================== SHARED CONTENT ====================
+
+@Composable
+private fun ProfileContent(
+    uiState: ProfileUiState,
+    onEvent: (ProfileEvent) -> Unit,
+    horizontalPadding: Dp,
+    isLandscape: Boolean,
+    centerContent: Boolean,
+    windowSize : WindowWidthSizeClass,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = horizontalPadding),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(if (centerContent) 56.dp else 20.dp))
+
+        ProfileHeader(
+            uiState = uiState,
+            avatarSize = if (isLandscape) 104.dp else 160.dp,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 32.dp))
+
+        ProfileMenu(
+            onEvent = onEvent,
+            modifier = Modifier.fillMaxWidth(),
+            windowSize = windowSize
+        )
+    }
+}
+
+// ==================== PROFILE SECTIONS ====================
 
 @Composable
 private fun ProfileHeader(
@@ -296,7 +332,8 @@ private fun ProfileGreeting(
 @Composable
 private fun ProfileMenu(
     onEvent: (ProfileEvent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    windowSize: WindowWidthSizeClass
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         ProfileMenuItem(
@@ -317,36 +354,35 @@ private fun ProfileMenu(
             title = "Feedback",
             onClick = { onEvent(ProfileEvent.FeedbackClicked) },
         )
-        ProfileMenuItem(
-            icon = Icons.AutoMirrored.Filled.Logout,
-            description = "logout",
-            title = "Logout",
-            onClick = { onEvent(ProfileEvent.LogoutClicked) },
-            tint = LogoutRed,
-            fontWeight = FontWeight.Bold
-        )
+        if (windowSize == WindowWidthSizeClass.Compact) {
+            ProfileMenuItem(
+                icon = Icons.AutoMirrored.Filled.Logout,
+                description = "logout",
+                title = "Logout",
+                onClick = { onEvent(ProfileEvent.LogoutClicked) },
+                tint = LogoutRed,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
 @Composable
 private fun ProfileMenuItem(
     icon: ImageVector,
-    description : String,
+    description: String,
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     tint: Color = Color.White,
-    fontWeight : FontWeight = FontWeight.Normal
+    fontWeight: FontWeight = FontWeight.Normal
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(72.dp)
-                .clickable(
-                    role = Role.Button,
-                    onClick = onClick
-                )
+                .clickable(role = Role.Button, onClick = onClick)
                 .padding(horizontal = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -371,6 +407,8 @@ private fun ProfileMenuItem(
     }
 }
 
+// ==================== NAVIGATION COMPONENTS ====================
+
 @Composable
 private fun ProfileBottomNavigation(
     selectedTab: ProfileTab,
@@ -378,12 +416,10 @@ private fun ProfileBottomNavigation(
     modifier: Modifier = Modifier
 ) {
     NavigationBar(
-        modifier = modifier
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .navigationBarsPadding(),
+        modifier = modifier,
         containerColor = Color.White
     ) {
-        profileItems.forEach { item ->
+        bottomProfileItems.forEach { item ->
             NavigationBarItem(
                 selected = selectedTab == item.tab,
                 onClick = { onEvent(ProfileEvent.TabSelected(item.tab)) },
@@ -410,78 +446,50 @@ private fun ProfileBottomNavigation(
 private fun ProfileNavigationRail(
     selectedTab: ProfileTab,
     onEvent: (ProfileEvent) -> Unit,
-    railWidth: Dp,
+    showLabels: Boolean,
     modifier: Modifier = Modifier
 ) {
-    NavigationRail(
+    Column(
         modifier = modifier
-            .width(railWidth)
-            .navigationBarsPadding(),
-        containerColor = Color.White
+            .fillMaxHeight()
+            .width(if (showLabels) 280.dp else 100.dp)
+            .background(Color.White)
+            .padding(vertical = 32.dp, horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
-
-        profileItems.forEach { item ->
+        sideProfileItems.forEach { item ->
             val selected = selectedTab == item.tab
+            val bgColor = if (selected) Color(0xFF0077D9) else Color.Transparent
+            val contentColor = if (selected) Color.White else Color(0xFF5A6B7C)
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(horizontal = 8.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(if (selected) BottomSelected.copy(alpha = 0.12f) else Color.Transparent)
+                    .height(52.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(bgColor)
                     .clickable { onEvent(ProfileEvent.TabSelected(item.tab)) }
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = if (showLabels) 20.dp else 0.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = if (showLabels) Arrangement.Start else Arrangement.Center
             ) {
-                val tint = if (selected) BottomSelected else BottomUnselected
                 Icon(
                     imageVector = item.icon,
                     contentDescription = item.description,
-                    tint = tint
+                    tint = if(item.icon == Icons.AutoMirrored.Filled.Logout) LogoutRed else contentColor,
+                    modifier = Modifier.size(30.dp)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = item.iconText,
-                    color = tint,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-}
-
-@Composable
-private fun ProfileVerticalNavigation(
-    selectedTab: ProfileTab,
-    onEvent: (ProfileEvent) -> Unit,
-    modifier: Modifier = Modifier
-){
-    Row(modifier = Modifier.fillMaxSize()) {
-        NavigationRail(containerColor = Color.White) {
-            profileItems.forEach { item ->
-                NavigationRailItem(
-                    selected = selectedTab == item.tab,
-                    onClick = { onEvent(ProfileEvent.TabSelected(item.tab)) },
-                    icon = {
-                        Icon(item.icon, contentDescription = item.description)
-                    },
-                    label = { Text(item.iconText) },
-                    colors = NavigationRailItemDefaults.colors(
-                        selectedIconColor = BottomSelected,
-                        selectedTextColor = BottomSelected,
-                        indicatorColor = BottomSelected.copy(alpha = 0.12f),
-                        unselectedIconColor = BottomUnselected,
-                        unselectedTextColor = BottomUnselected
+                if (showLabels) {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = item.iconText,
+                        color = if (item.iconText == "Logout") LogoutRed else contentColor,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                     )
-                )
+                }
             }
         }
     }
 }
-
-
-
-

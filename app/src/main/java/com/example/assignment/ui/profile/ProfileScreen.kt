@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,8 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.assignment.ui.navigation.ProfileRoutes
-import com.example.assignment.ui.navigation.ScreenRoutes
+import com.example.assignment.navigation.ProfileRoutes
+import com.example.assignment.navigation.ScreenRoutes
 
 @Composable
 fun ProfileScreen(
@@ -137,5 +140,22 @@ private fun ProfileScreenContent(
                 centerContent = isVeryTallScreen
             )
         }
+    }
+    if (uiState.showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { onEvent(ProfileEvent.LogoutCanceled) },
+            title = { Text("Logout") },
+            text = { Text("Are you sure you want to log out?") },
+            confirmButton = {
+                TextButton(onClick = { onEvent(ProfileEvent.LogoutConfirmed) }) {
+                    Text("Logout", color = Color(0xFFFF4D4F))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onEvent(ProfileEvent.LogoutCanceled) }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

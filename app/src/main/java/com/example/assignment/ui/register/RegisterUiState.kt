@@ -1,6 +1,6 @@
 package com.example.assignment.ui.register
 
-import com.example.assignment.ui.navigation.ScreenRoutes
+import com.example.assignment.navigation.ScreenRoutes
 
 data class RegisterUiState (
     val username: String = "",
@@ -11,6 +11,7 @@ data class RegisterUiState (
     val emailError: String? = null,
     val passwordError: String? = null,
     val confirmPasswordError: String? = null,
+    val showSuccessDialog : Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
     val navigateTo: ScreenRoutes? = null,

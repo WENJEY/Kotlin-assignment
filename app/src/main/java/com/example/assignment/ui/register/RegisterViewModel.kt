@@ -2,9 +2,9 @@ package com.example.assignment.ui.register
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.assignment.database.FirebaseRepository
 import com.example.assignment.database.Repository
-import com.example.assignment.ui.navigation.ScreenRoutes
+import com.example.assignment.database.SupabaseRepository
+import com.example.assignment.navigation.ScreenRoutes
 import com.example.assignment.ui.utils.RegisterValidator.validateConfirmPassword
 import com.example.assignment.ui.utils.RegisterValidator.validateEmail
 import com.example.assignment.ui.utils.RegisterValidator.validatePassword
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RegisterViewModel(
-    private val repository: Repository = FirebaseRepository(),
+    private val repository: Repository = SupabaseRepository(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUiState())
@@ -65,82 +65,94 @@ class RegisterViewModel(
                 }
             }
 
-            RegisterEvent.SignUpClicked -> signUp()
-
-            RegisterEvent.LoginClicked -> {
+            is RegisterEvent.ForgotPasswordClicked -> {
                 _uiState.update {
-                    it.copy(navigateTo = ScreenRoutes.Login)
+                    it.copy(navigateTo = ScreenRoutes.ForgotPassword)
                 }
             }
 
-            RegisterEvent.NavigationHandled -> {
+            is RegisterEvent.SignUpSuccessClicked -> {
                 _uiState.update {
-                    it.copy(navigateTo = null)
+                    it.copy(showSuccessDialog = true)
+                }
+            }
+
+                RegisterEvent.SignUpClicked -> signUp()
+
+                RegisterEvent.LoginClicked -> {
+                    _uiState.update {
+                        it.copy(navigateTo = ScreenRoutes.Login)
+                    }
+                }
+
+                RegisterEvent.NavigationHandled -> {
+                    _uiState.update {
+                        it.copy(navigateTo = null)
+                    }
                 }
             }
         }
-    }
 
-    private fun signUp() {
-        val state = _uiState.value
+        private fun signUp() {
+            val state = _uiState.value
 
-        if (state.isLoading) return
+            if (state.isLoading) return
 
-        val usernameError = validateUsername(state.username)
-        val emailError = validateEmail(state.email)
-        val passwordError = validatePassword(state.password)
-        val confirmPasswordError = validateConfirmPassword(
-            state.password,
-            state.confirmPassword
-        )
+            val usernameError = validateUsername(state.username)
+            val emailError = validateEmail(state.email)
+            val passwordError = validatePassword(state.password)
+            val confirmPasswordError = validateConfirmPassword(
+                state.password,
+                state.confirmPassword
+            )
 
-        if (usernameError != null || emailError != null || passwordError != null || confirmPasswordError != null) {
+            if (usernameError != null || emailError != null || passwordError != null || confirmPasswordError != null) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        usernameError = usernameError,
+                        emailError = emailError,
+                        passwordError = passwordError,
+                        confirmPasswordError = confirmPasswordError
+                    )
+                }
+                return
+            }
+
             _uiState.update {
                 it.copy(
-                    isLoading = false,
-                    usernameError = usernameError,
-                    emailError = emailError,
-                    passwordError = passwordError,
-                    confirmPasswordError = confirmPasswordError
+                    isLoading = true,
+                    error = null
                 )
             }
-            return
-        }
 
-        _uiState.update {
-            it.copy(
-                isLoading = true,
-                error = null
-            )
-        }
-
-        viewModelScope.launch {
-            when (
-                val result = repository.signUp(
-                    username = state.username,
-                    email = state.email,
-                    password = state.password
-                )
-            ) {
-                is Result.Success -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            isRegistered = true,
-                            navigateTo = ScreenRoutes.Profile
-                        )
+            viewModelScope.launch {
+                when (
+                    val result = repository.signUp(
+                        username = state.username,
+                        email = state.email,
+                        password = state.password
+                    )
+                ) {
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                isRegistered = true,
+                                navigateTo = ScreenRoutes.Login
+                            )
+                        }
                     }
-                }
 
-                is Result.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = result.message
-                        )
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = result.message
+                            )
+                        }
                     }
                 }
             }
         }
     }
-}

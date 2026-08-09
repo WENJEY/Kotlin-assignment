@@ -1,4 +1,4 @@
-package com.example.assignment.ui.navigation
+package com.example.assignment.navigation
 
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -8,15 +8,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.assignment.ui.login.LoginScreen
 import com.example.assignment.ui.register.RegisterScreen
 import com.example.assignment.ui.profile.ProfileScreen
-import com.google.firebase.auth.FirebaseAuth
+import com.example.assignment.database.SupabaseRepository
 
 @Composable
 fun MyAppNavHost(windowSize: WindowWidthSizeClass) {
     val navController = rememberNavController()
-    val auth = FirebaseAuth.getInstance()
-
     // Check already login or not
-    val startDestination = if (auth.currentUser != null) {
+    val startDestination = if (SupabaseRepository().isLoggedIn()) {
         ScreenRoutes.Profile.route
     } else {
         ScreenRoutes.Login.route

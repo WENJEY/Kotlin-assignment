@@ -7,6 +7,8 @@ sealed class ProfileEvent {
     data object FeedbackClicked : ProfileEvent()
     data object LogoutClicked : ProfileEvent()
     data object NavigationHandled : ProfileEvent()
+    data object LogoutConfirmed : ProfileEvent()
+    data object LogoutCanceled : ProfileEvent()
     data class TabSelected(val tab: ProfileTab) : ProfileEvent()
 }
 

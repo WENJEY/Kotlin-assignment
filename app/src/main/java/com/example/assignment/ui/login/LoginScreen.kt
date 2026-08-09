@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.assignment.ui.navigation.ScreenRoutes
+import com.example.assignment.navigation.ScreenRoutes
 
 @Composable
 fun LoginScreen(

@@ -1,4 +1,4 @@
-package com.example.assignment.ui.navigation
+package com.example.assignment.navigation
 
 sealed class ProfileRoutes(val route: String){
     data object Profile : ProfileRoutes("profile")

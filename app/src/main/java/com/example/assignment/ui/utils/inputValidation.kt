@@ -1,7 +1,7 @@
 package com.example.assignment.ui.utils
 
-import com.example.assignment.database.FirebaseRepository
 import com.example.assignment.database.Repository
+import com.example.assignment.database.SupabaseRepository
 
 object RegisterValidator {
      fun validateEmail(email: String): String? = when {
@@ -37,25 +37,25 @@ object RegisterValidator {
         else -> null
     }
 }
-
 class LoginValidator(
-    private val repository: Repository = FirebaseRepository()
+    private val repository: Repository = SupabaseRepository()
 ) {
-
     suspend fun validateLogin(identifier: String, password: String): String? {
         if (identifier.isBlank() || password.isBlank()) {
             return "Please enter email/username and password"
         }
 
-        // Determine if email or username
-        val email = if (identifier.contains("@")) {
-            identifier
+        val trimmed = identifier.trim()
+
+        val email = if (trimmed.contains("@")) {
+            trimmed
         } else {
-            // Lookup email by username
-            repository.getEmailByUsername(identifier) ?: return "Invalid username/email or password"
+            when (val result = repository.getEmailByUsername(trimmed)) {
+                is Result.Success -> result.data
+                is Result.Error -> return result.message
+            }
         }
 
-        // Verify with Firebase
         return when (val result = repository.login(email, password)) {
             is Result.Success -> null
             is Result.Error -> result.message

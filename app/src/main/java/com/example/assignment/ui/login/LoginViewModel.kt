@@ -2,7 +2,7 @@ package com.example.assignment.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.assignment.ui.navigation.ScreenRoutes
+import com.example.assignment.navigation.ScreenRoutes
 import com.example.assignment.ui.utils.LoginValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

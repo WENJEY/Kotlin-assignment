@@ -514,12 +514,12 @@ private fun LoginForm(
             )
             Spacer(modifier = Modifier.height(largeSpacer))
 
-            // Identifier field (email or username)
+            // Email field
             CustomTextField(
-                label = "Username / Email",
+                label = "Email / Username",
                 value = uiState.identifier,
                 onValueChange = { onEvent(LoginEvent.IdentifierChanged(it)) },
-                placeholder = "Username / Email",
+                placeholder = "Email / Username",
                 keyboardType = KeyboardType.Text,
                 error = null,
                 bodySize = bodySize,
@@ -552,7 +552,7 @@ private fun LoginForm(
             }
             Spacer(modifier = Modifier.height(tinySpacer))
 
-            // Global error (from Firebase)
+            // Global authentication error
             uiState.error?.let { error ->
                 Text(
                     text = error,

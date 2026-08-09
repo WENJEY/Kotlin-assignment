@@ -6,10 +6,11 @@ data class ProfileUiState(
     val selectedTab: ProfileTab = ProfileTab.Profile,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val showLogoutDialog : Boolean = false,
     val navigateTo: String? = null
 )
 
 enum class ProfileTab {
-    Home, Scanner , ChatBox, Profile
+    Home, Scanner , ChatBox, Profile,Logout
 }
 
