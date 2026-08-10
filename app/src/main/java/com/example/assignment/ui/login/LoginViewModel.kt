@@ -36,6 +36,10 @@ class LoginViewModel(
                 }
             }
             is LoginEvent.LoginClicked -> login()
+
+            is LoginEvent.ForgotPasswordClicked ->{
+                _uiState.update { it.copy(navigateTo = ScreenRoutes.ForgotPassword) }
+            }
             is LoginEvent.SignUpClicked -> {
                 _uiState.update { it.copy(navigateTo = ScreenRoutes.Register) }
             }

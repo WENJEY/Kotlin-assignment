@@ -66,9 +66,9 @@ class RegisterViewModel(
             }
 
             is RegisterEvent.ForgotPasswordClicked -> {
-                _uiState.update {
+                /**_uiState.update {
                     it.copy(navigateTo = ScreenRoutes.ForgotPassword)
-                }
+                }**/
             }
 
             is RegisterEvent.SignUpSuccessClicked -> {

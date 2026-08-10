@@ -23,6 +23,11 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -74,7 +79,6 @@ internal fun CompactLayout(
     val isVeryShortScreen = maxHeight < 500.dp
     val scrollState = rememberScrollState()
 
-    // NEW: If centerContent is true, always center
     val verticalArrangement = when {
         centerContent -> Arrangement.Center
         isVeryShortScreen -> Arrangement.Top
@@ -82,80 +86,107 @@ internal fun CompactLayout(
         else -> Arrangement.Center
     }
 
-    val boxAlignment = when {
-        centerContent -> Alignment.Center
-        isShortScreen -> Alignment.TopCenter
-        else -> Alignment.Center
-    }
-
     val adaptiveLogoSize = when {
-        isVeryShortScreen -> logoSize * 0.6f
-        isShortScreen -> logoSize * 0.75f
+        isVeryShortScreen -> logoSize * 0.45f
+        isShortScreen -> logoSize * 0.60f
         else -> logoSize
     }
 
     val adaptiveTitleSize = when {
-        isVeryShortScreen -> titleSize * 0.7f
-        isShortScreen -> titleSize * 0.85f
+        isVeryShortScreen -> titleSize * 0.70f
+        isShortScreen -> titleSize * 0.80f
         else -> titleSize
     }
 
     val headerSpacer = when {
-        isVeryShortScreen -> 8.dp
-        isShortScreen -> 12.dp
-        centerContent -> 24.dp
-        else -> 20.dp
+        isVeryShortScreen -> 4.dp
+        isShortScreen -> 8.dp
+        centerContent -> 16.dp
+        else -> 16.dp
     }
 
     val topPadding = when {
-        isVeryShortScreen -> 8.dp
-        isShortScreen -> 16.dp
-        centerContent -> 32.dp
-        else -> 22.dp
+        isVeryShortScreen -> 4.dp
+        isShortScreen -> 8.dp
+        centerContent -> 20.dp
+        else -> 16.dp
     }
 
     val contentMaxWidth = if (isLandscape && maxWidth > 600.dp) 560.dp else Dp.Unspecified
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .imePadding()
-            .verticalScroll(scrollState),
-        contentAlignment = boxAlignment
-    ) {
-        Column(
-            modifier = Modifier
+    Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.statusBarsPadding(),
+        topBar = {
+            Row(
+                modifier = Modifier
                 .fillMaxWidth()
-                .then(if (contentMaxWidth != Dp.Unspecified) Modifier.widthIn(max = contentMaxWidth) else Modifier)
                 .padding(
                     start = horizontalPadding,
-                    end = horizontalPadding,
-                    top = topPadding,
-                    bottom = bottomPadding + 16.dp
+                    end = horizontalPadding
                 ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = verticalArrangement
-        ) {
-            LoginHeader(
-                logoSize = adaptiveLogoSize,
-                titleSize = adaptiveTitleSize,
-                stackContent = stackHeader
-            )
+                horizontalArrangement = Arrangement.Start)
+            {
+                IconButton(
+                    onClick = {
+                        onEvent(
+                            RegisterEvent.LoginClicked
+                        )
+                    }
+                ) {
 
-            Spacer(modifier = Modifier.height(headerSpacer))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back to login",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
 
-            RegisterForm(
-                uiState = uiState,
-                onEvent = onEvent,
-                screenHeight = screenType,
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .imePadding()
+                .verticalScroll(scrollState),
+            contentAlignment = Alignment.TopCenter
+        ){
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .then(if (formMaxWidth != Dp.Unspecified) Modifier.widthIn(max = formMaxWidth) else Modifier)
-            )
+                    .then(if (contentMaxWidth != Dp.Unspecified) Modifier.widthIn(max = contentMaxWidth) else Modifier)
+                    .padding(
+                        start = horizontalPadding,
+                        end = horizontalPadding,
+                        top = topPadding,
+                        bottom = bottomPadding + 16.dp
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = verticalArrangement
+            ) {
+                LoginHeader(
+                    logoSize = adaptiveLogoSize,
+                    titleSize = adaptiveTitleSize,
+                    stackContent = stackHeader
+                )
 
-            if (isShortScreen || centerContent) {
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(headerSpacer))
+
+                RegisterForm(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    screenHeight = screenType,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(if (formMaxWidth != Dp.Unspecified) Modifier.widthIn(max = formMaxWidth) else Modifier)
+                )
+
+                if (isShortScreen || centerContent) {
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
             }
         }
     }
@@ -200,42 +231,75 @@ internal fun MediumLayout(
 
     // NEW: Center vertically when centerContent is true
     val verticalArrangement = if (centerContent) Arrangement.Center else Arrangement.Top
+    Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.statusBarsPadding(),
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = horizontalPadding,
+                        end = horizontalPadding
+                    ),
+                horizontalArrangement = Arrangement.Start)
+            {
+                IconButton(
+                    onClick = {
+                        onEvent(
+                            RegisterEvent.LoginClicked
+                        )
+                    }
+                ) {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .imePadding()
-            .verticalScroll(scrollState)
-            .padding(
-                start = horizontalPadding,
-                end = horizontalPadding,
-                top = topPadding,
-                bottom = bottomPadding + 24.dp
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = verticalArrangement
-    ) {
-        LoginHeader(
-            logoSize = if (isShortScreen) logoSize * 0.85f else logoSize,
-            titleSize = if (isShortScreen) titleSize * 0.9f else titleSize,
-            stackContent = false
-        )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back to login",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
 
-        Spacer(modifier = Modifier.height(spacerHeight))
-
-        RegisterForm(
-            uiState = uiState,
-            onEvent = onEvent,
-            screenHeight = if (isShortScreen) ScreenHeight.Small else ScreenHeight.Large,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .then(if (formMaxWidth != Dp.Unspecified) Modifier.widthIn(max = formMaxWidth) else Modifier)
-        )
+                .fillMaxSize()
+                .padding(innerPadding)
+                .imePadding()
+                .verticalScroll(scrollState)
+                .padding(
+                    start = horizontalPadding,
+                    end = horizontalPadding,
+                    top = topPadding,
+                    bottom = bottomPadding + 24.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = verticalArrangement
+        ) {
+            LoginHeader(
+                logoSize = if (isShortScreen) logoSize * 0.85f else logoSize,
+                titleSize = if (isShortScreen) titleSize * 0.9f else titleSize,
+                stackContent = false
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(spacerHeight))
+
+            RegisterForm(
+                uiState = uiState,
+                onEvent = onEvent,
+                screenHeight = if (isShortScreen) ScreenHeight.Small else ScreenHeight.Large,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(if (formMaxWidth != Dp.Unspecified) Modifier.widthIn(max = formMaxWidth) else Modifier)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
+
 
 // ========== EXPANDED LAYOUT ==========
 
@@ -267,47 +331,79 @@ internal fun ExpandedLayout(
         else -> 40.dp
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .imePadding()
-            .navigationBarsPadding()
-            .verticalScroll(scrollState)
-            .padding(
-                start = horizontalPadding,
-                end = horizontalPadding,
-                top = if (isShortScreen) 16.dp else 34.dp,
-                bottom = bottomPadding + 24.dp
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        Box(
-            modifier = Modifier.weight(1f),
-            contentAlignment = if (centerContent) Alignment.Center else Alignment.CenterStart
-        ) {
-            LoginHeader(
-                logoSize = if (isShortScreen) logoSize * 0.8f else logoSize,
-                titleSize = if (isShortScreen) titleSize * 0.85f else titleSize,
-                stackContent = false
-            )
-        }
-
-        Spacer(modifier = Modifier.width(spacerWidth))
-
-        Box(
-            modifier = Modifier.weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            RegisterForm(
-                uiState = uiState,
-                onEvent = onEvent,
-                screenHeight = if (isShortScreen) ScreenHeight.Small else ScreenHeight.Large,
+    Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.statusBarsPadding(),
+        topBar = {
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .then(if (formMaxWidth != Dp.Unspecified) Modifier.widthIn(max = formMaxWidth) else Modifier)
-            )
+                    .padding(
+                        start = horizontalPadding,
+                        end = horizontalPadding
+                    ),
+                horizontalArrangement = Arrangement.Start)
+            {
+                IconButton(
+                    onClick = {
+                        onEvent(
+                            RegisterEvent.LoginClicked
+                        )
+                    }
+                ) {
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back to login",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .imePadding()
+                .navigationBarsPadding()
+                .verticalScroll(scrollState)
+                .padding(
+                    start = horizontalPadding,
+                    end = horizontalPadding,
+                    top = if (isShortScreen) 16.dp else 34.dp,
+                    bottom = bottomPadding + 24.dp
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = if (centerContent) Alignment.Center else Alignment.CenterStart
+            ) {
+                LoginHeader(
+                    logoSize = if (isShortScreen) logoSize * 0.8f else logoSize,
+                    titleSize = if (isShortScreen) titleSize * 0.85f else titleSize,
+                    stackContent = false
+                )
+            }
+
+            Spacer(modifier = Modifier.width(spacerWidth))
+
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                RegisterForm(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    screenHeight = if (isShortScreen) ScreenHeight.Small else ScreenHeight.Large,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(if (formMaxWidth != Dp.Unspecified) Modifier.widthIn(max = formMaxWidth) else Modifier)
+                )
+            }
         }
     }
 }
@@ -517,7 +613,7 @@ private fun LoginHeader(
     }
 
     if (stackContent) {
-        Spacer(modifier = Modifier.width(22.dp))
+        Spacer(modifier = Modifier.width(32.dp))
         Row(modifier = modifier, verticalAlignment = Alignment.Top) {
             logo()
             HeaderTextBlock(titleSize = titleSize, titleAlignment = Alignment.CenterHorizontally)

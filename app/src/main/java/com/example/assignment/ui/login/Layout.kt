@@ -541,7 +541,7 @@ private fun LoginForm(
 
             // Forgot password
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = {}) {
+                TextButton(onClick = {onEvent(LoginEvent.ForgotPasswordClicked)}) {
                     Text(
                         text = "Forgot password?",
                         color = LinkBlue,

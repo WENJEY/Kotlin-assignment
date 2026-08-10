@@ -9,4 +9,6 @@ interface Repository {
     fun currentUser(): User?
     fun isLoggedIn(): Boolean
     suspend fun logout()
+
+    suspend fun resetPassword(email: String): Result<Unit>
 }
