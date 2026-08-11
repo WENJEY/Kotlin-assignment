@@ -4,16 +4,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.assignment.database.SupabaseClientProvider
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 class ForgotPasswordViewModel : ViewModel() {
 
-    private val auth =
-        SupabaseClientProvider.client.auth
+    private val auth = SupabaseClientProvider.client.auth
+    private val postgrest = SupabaseClientProvider.client.postgrest
 
     private val _uiState =
         MutableStateFlow(ForgotPasswordUiState())
@@ -98,11 +101,31 @@ class ForgotPasswordViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
+                val emailExists = postgrest
+                    .rpc(
+                        function = "email_exists",
+                        parameters = buildJsonObject {
+                            put("check_email", email)
+                        }
+                    )
+                    .decodeAs<Boolean>()
+
+                if (!emailExists) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "Email does not exist.",
+                            message = null
+                        )
+                    }
+                    return@launch
+                }
+
                 auth.resetPasswordForEmail(
                     email = email,
                     redirectUrl = "com.example.assignment://reset-password"
                 )
-                // Success
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -114,7 +137,7 @@ class ForgotPasswordViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = "Unable to send password reset email. " + "Please try again.",
+                        error = "Unable to send password reset email. Please try again.",
                         message = null
                     )
                 }

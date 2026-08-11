@@ -4,11 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -42,11 +45,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.text.LocalAutofillHighlightColor
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -65,15 +71,14 @@ internal fun CompactLayout(
     titleSize: TextUnit,
     formMaxWidth: Dp,
     horizontalPadding: Dp,
-    bottomPadding: Dp,
     maxHeight: Dp,
-    maxWidth: Dp = Dp.Unspecified,
     centerContent: Boolean = false
 ){
     val scrollState = rememberScrollState()
 
     val isShortScreen = maxHeight < 700.dp
     val isVeryShortScreen = maxHeight < 500.dp
+    val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
     val adaptiveLogoSize = when {
         isVeryShortScreen -> logoSize * 0.55f
@@ -103,7 +108,6 @@ internal fun CompactLayout(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Transparent,
         topBar = {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -130,69 +134,39 @@ internal fun CompactLayout(
                     )
                 }
             }
-        },
-        bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = horizontalPadding,
-                        end = horizontalPadding,
-                        bottom = bottomPadding + 8.dp
-                    ),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Remember your password?",
-                    color = Color.White,
-                    fontSize = 14.sp
-                )
-                TextButton(onClick = { onEvent(ResetPasswordEvent.BackToLoginClicked) }
-                ) {
-                    Text(
-                        text = "Back to login",
-                        color = Color.White,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
+    }
 
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding()
-                .verticalScroll(scrollState),
-            contentAlignment = Alignment.TopCenter
-
         ) {
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (keyboardVisible) {
+                            Modifier.verticalScroll(scrollState)
+                        } else {
+                            Modifier
+                        }
+                    ),
+                contentAlignment = Alignment.TopCenter
+            ) {
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .then(
-                        if (maxWidth != Dp.Unspecified) {
-                            Modifier
-                        } else {
-                            Modifier
-                        }
-                    )
                     .padding(
                         start = horizontalPadding,
                         end = horizontalPadding,
                         top = topPadding,
-                        bottom = 24.dp
+                        bottom = 20.dp
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = if (centerContent) {
-                    Arrangement.Center
-                } else {
-                    Arrangement.Top
-                }
+                verticalArrangement = Arrangement.Top
             ) {
                 // Lock Icon
                 Box(
@@ -265,66 +239,71 @@ internal fun CompactLayout(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        OutlinedTextField(
-                            value = uiState.password,
-                            onValueChange = { onEvent(ResetPasswordEvent.PasswordChanged(it)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !uiState.isLoading,
-                            singleLine = true,
-                            placeholder = {
-                                Text(
-                                    text = "Enter new password",
-                                    color = TextGray
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Lock,
-                                    contentDescription = null,
-                                    tint = BluePrimary
-                                )
-                            },
-                            trailingIcon = {
-                                IconButton(
-                                    onClick = {
-                                        onEvent(ResetPasswordEvent.TogglePasswordVisibility) }
-                                ) {
+                        CompositionLocalProvider(
+                            LocalAutofillHighlightColor provides Color.Transparent
+                        ) {
+                            OutlinedTextField(
+                                value = uiState.password,
+                                onValueChange = { onEvent(ResetPasswordEvent.PasswordChanged(it)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !uiState.isLoading,
+                                singleLine = true,
+                                placeholder = {
+                                    Text(
+                                        text = "Enter new password",
+                                        color = TextGray
+                                    )
+                                },
+                                leadingIcon = {
                                     Icon(
-                                        imageVector =
-                                            if (uiState.passwordVisible) {
-                                                Icons.Default.VisibilityOff
-                                            } else {
-                                                Icons.Default.Visibility
-                                            },
-                                        contentDescription =
-                                            if (uiState.passwordVisible) {
-                                                "Hide password"
-                                            } else {
-                                                "Show password"
-                                            },
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = null,
                                         tint = BluePrimary
                                     )
-                                }
-                            },
-                            visualTransformation =
-                                if (uiState.passwordVisible) {
-                                    VisualTransformation.None
-                                } else {
-                                    PasswordVisualTransformation()
                                 },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Password
-                            ),
-                            shape = RoundedCornerShape(14.dp),
-                            colors =
-                                OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = BluePrimary,
-                                    unfocusedBorderColor = BorderGray,
-                                    focusedTextColor = TextDark,
-                                    unfocusedTextColor = TextDark,
-                                    cursorColor = BluePrimary
-                                )
-                        )
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            onEvent(ResetPasswordEvent.TogglePasswordVisibility)
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector =
+                                                if (uiState.passwordVisible) {
+                                                    Icons.Default.VisibilityOff
+                                                } else {
+                                                    Icons.Default.Visibility
+                                                },
+                                            contentDescription =
+                                                if (uiState.passwordVisible) {
+                                                    "Hide password"
+                                                } else {
+                                                    "Show password"
+                                                },
+                                            tint = BluePrimary
+                                        )
+                                    }
+                                },
+                                visualTransformation =
+                                    if (uiState.passwordVisible) {
+                                        VisualTransformation.None
+                                    } else {
+                                        PasswordVisualTransformation()
+                                    },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Password
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                colors =
+                                    OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = BluePrimary,
+                                        unfocusedBorderColor = BorderGray,
+                                        focusedTextColor = TextDark,
+                                        unfocusedTextColor = TextDark,
+                                        cursorColor = BluePrimary
+                                    )
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(20.dp))
 
@@ -338,82 +317,92 @@ internal fun CompactLayout(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        OutlinedTextField(
-                            value = uiState.confirmPassword,
-                            onValueChange = { onEvent(ResetPasswordEvent.ConfirmPasswordChanged(it)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !uiState.isLoading,
-                            singleLine = true,
-                            placeholder = {
-                                Text(
-                                    text = "Confirm new password",
-                                    color = TextGray
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Lock,
-                                    contentDescription = null,
-                                    tint = BluePrimary
-                                )
-                            },
-                            trailingIcon = {
-                                IconButton(
-                                    onClick = { onEvent(ResetPasswordEvent.ToggleConfirmPasswordVisibility) }
-                                ) {
+                        CompositionLocalProvider(
+                            LocalAutofillHighlightColor provides Color.Transparent
+                        ) {
+                            OutlinedTextField(
+                                value = uiState.confirmPassword,
+                                onValueChange = {
+                                    onEvent(
+                                        ResetPasswordEvent.ConfirmPasswordChanged(
+                                            it
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !uiState.isLoading,
+                                singleLine = true,
+                                placeholder = {
+                                    Text(
+                                        text = "Confirm new password",
+                                        color = TextGray
+                                    )
+                                },
+                                leadingIcon = {
                                     Icon(
-                                        imageVector =
-                                            if (
-                                                uiState.confirmPasswordVisible
-                                            ) {
-                                                Icons.Default.VisibilityOff
-                                            } else {
-                                                Icons.Default.Visibility
-                                            },
-                                        contentDescription =
-                                            if (
-                                                uiState.confirmPasswordVisible
-                                            ) {
-                                                "Hide password"
-                                            } else {
-                                                "Show password"
-                                            },
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = null,
                                         tint = BluePrimary
                                     )
-                                }
-                            },
-                            visualTransformation =
-                                if (
-                                    uiState.confirmPasswordVisible
-                                ) {
-                                    VisualTransformation.None
-                                } else {
-                                    PasswordVisualTransformation()
                                 },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType =
-                                    KeyboardType.Password
-                            ),
-                            shape = RoundedCornerShape(14.dp),
-                            colors =
-                                OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = BluePrimary,
-                                    unfocusedBorderColor = BorderGray,
-                                    focusedTextColor = TextDark,
-                                    unfocusedTextColor = TextDark,
-                                    cursorColor = BluePrimary
-                                )
-                        )
-                        // Error
-                        uiState.error?.let { error ->
-
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = error,
-                                color = ErrorRed,
-                                fontSize = 13.sp,
-                                modifier = Modifier.fillMaxWidth()
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = { onEvent(ResetPasswordEvent.ToggleConfirmPasswordVisibility) }
+                                    ) {
+                                        Icon(
+                                            imageVector =
+                                                if (
+                                                    uiState.confirmPasswordVisible
+                                                ) {
+                                                    Icons.Default.VisibilityOff
+                                                } else {
+                                                    Icons.Default.Visibility
+                                                },
+                                            contentDescription =
+                                                if (
+                                                    uiState.confirmPasswordVisible
+                                                ) {
+                                                    "Hide password"
+                                                } else {
+                                                    "Show password"
+                                                },
+                                            tint = BluePrimary
+                                        )
+                                    }
+                                },
+                                visualTransformation =
+                                    if (
+                                        uiState.confirmPasswordVisible
+                                    ) {
+                                        VisualTransformation.None
+                                    } else {
+                                        PasswordVisualTransformation()
+                                    },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType =
+                                        KeyboardType.Password
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                colors =
+                                    OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = BluePrimary,
+                                        unfocusedBorderColor = BorderGray,
+                                        focusedTextColor = TextDark,
+                                        unfocusedTextColor = TextDark,
+                                        cursorColor = BluePrimary
+                                    )
                             )
+                            // Error
+                            uiState.error?.let { error ->
+
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = error,
+                                    color = ErrorRed,
+                                    fontSize = 13.sp,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
 
@@ -427,15 +416,11 @@ internal fun CompactLayout(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        PasswordRequirement(
-                            text = "At least 6 characters"
-                        )
+                        PasswordRequirement(text = "At least 6 characters")
 
                         Spacer(modifier = Modifier.height(7.dp))
 
-                        PasswordRequirement(
-                            text = "Passwords must match"
-                        )
+                        PasswordRequirement(text = "Passwords must match")
 
                         Spacer(modifier = Modifier.height(22.dp))
 
@@ -486,6 +471,43 @@ internal fun CompactLayout(
                             )
                         }
                     }
+                }
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Text(
+                    text = "Remember your password?",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+
+                Spacer(
+                    modifier = Modifier.width(4.dp)
+                )
+
+                TextButton(
+                    onClick = {
+                        onEvent(
+                            ResetPasswordEvent.BackToLoginClicked
+                        )
+                    },
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+
+                    Text(
+                        text = "Back to login",
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

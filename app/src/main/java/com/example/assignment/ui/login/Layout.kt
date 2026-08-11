@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.LocalAutofillHighlightColor
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
@@ -45,6 +46,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -619,6 +621,10 @@ internal fun CustomTextField(
             onValueChange(placeholder)
         }
     }
+
+    CompositionLocalProvider(
+        LocalAutofillHighlightColor provides Color.Transparent
+    ){
     Column {
         Text(
             text = label,
@@ -638,14 +644,17 @@ internal fun CustomTextField(
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = FieldTint,
                 unfocusedContainerColor = FieldTint,
+                disabledContainerColor = FieldTint,
                 errorContainerColor = FieldTint,
 
                 focusedTextColor = textColor,
                 unfocusedTextColor = textColor,
+                disabledTextColor = textColor,
                 errorTextColor = textColor,
 
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
                 errorIndicatorColor = Color.Transparent,
 
                 cursorColor = BrandBlue,
@@ -662,6 +671,7 @@ internal fun CustomTextField(
                 fontSize = bodySize * 0.85f,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
             )
+            }
         }
     }
 }
@@ -695,7 +705,9 @@ internal fun CustomPasswordField(
     }
 
 
-
+    CompositionLocalProvider(
+        LocalAutofillHighlightColor provides Color.Transparent
+    ){
     Column {
         Text(
             text = label,
@@ -745,22 +757,27 @@ internal fun CustomPasswordField(
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = FieldTint,
                 unfocusedContainerColor = FieldTint,
+                disabledContainerColor = FieldTint,
                 errorContainerColor = FieldTint,
 
                 focusedTextColor = textColor,
                 unfocusedTextColor = textColor,
+                disabledTextColor = textColor,
                 errorTextColor = textColor,
 
                 focusedLabelColor = BodyText,
                 unfocusedLabelColor = BodyText,
+                disabledLabelColor = BodyText,
                 errorLabelColor = BodyText,
 
                 focusedPlaceholderColor = Color.Gray,
                 unfocusedPlaceholderColor = Color.Gray,
+                disabledPlaceholderColor = Color.Gray,
                 errorPlaceholderColor = Color.Gray,
 
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
                 errorIndicatorColor = Color.Transparent,
 
                 cursorColor = BrandBlue,
@@ -777,7 +794,8 @@ internal fun CustomPasswordField(
                 color = Color.Red,
                 fontSize = bodySize * 0.85f,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-            )
+                )
+            }
         }
     }
 }

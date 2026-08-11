@@ -150,7 +150,6 @@ internal fun CompactLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding()
                 .verticalScroll(scrollState),
             contentAlignment = Alignment.TopCenter
         ){
@@ -267,7 +266,6 @@ internal fun MediumLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding()
                 .verticalScroll(scrollState)
                 .padding(
                     start = horizontalPadding,
@@ -366,7 +364,6 @@ internal fun ExpandedLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding()
                 .navigationBarsPadding()
                 .verticalScroll(scrollState)
                 .padding(
@@ -545,7 +542,7 @@ private fun RegisterForm(
                 value = uiState.confirmPassword,
                 onValueChange = { onEvent(RegisterEvent.ConfirmPasswordChanged(it)) },
                 placeholder = "Password",
-                error = uiState.passwordError,
+                error = uiState.confirmPasswordError,
                 bodySize = bodySize,
                 buttonHeight = buttonHeight
             )

@@ -21,11 +21,19 @@ fun MyAppNavHost(
     deepLink: Uri? = null
 ) {
     val navController = rememberNavController()
-    // Check already login or not
-    val startDestination = if (SupabaseRepository().isLoggedIn()) {
-        ScreenRoutes.Profile.route
-    } else {
-        ScreenRoutes.Login.route
+
+    val isResetPasswordLink =
+        deepLink?.scheme == "com.example.assignment" &&
+                deepLink.host == "reset-password"
+
+    val startDestination = when {
+        isResetPasswordLink ->
+            ScreenRoutes.ResetPassword.route
+
+        SupabaseRepository().isLoggedIn() ->
+            ScreenRoutes.Profile.route
+        else ->
+            ScreenRoutes.ResetPassword.route
     }
 
     NavHost(
@@ -57,20 +65,6 @@ fun MyAppNavHost(
 
         composable(ScreenRoutes.ResetPassword.route) {
             ResetPasswordScreen(navController = navController, windowSize = windowSize)
-        }
-    }
-
-    LaunchedEffect(deepLink) {
-
-        if (
-            deepLink?.scheme == "com.example.assignment" &&
-            deepLink.host == "reset-password"
-        ) {
-
-            navController.navigate(ScreenRoutes.ResetPassword.route)
-            {
-                launchSingleTop = true
-            }
         }
     }
 }

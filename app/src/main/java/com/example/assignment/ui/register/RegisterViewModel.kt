@@ -65,15 +65,12 @@ class RegisterViewModel(
                 }
             }
 
-            is RegisterEvent.ForgotPasswordClicked -> {
-                /**_uiState.update {
-                    it.copy(navigateTo = ScreenRoutes.ForgotPassword)
-                }**/
-            }
-
             is RegisterEvent.SignUpSuccessClicked -> {
                 _uiState.update {
-                    it.copy(showSuccessDialog = true)
+                    it.copy(
+                        showSuccessDialog = false,
+                        navigateTo = ScreenRoutes.Login
+                    )
                 }
             }
 
@@ -139,7 +136,7 @@ class RegisterViewModel(
                             it.copy(
                                 isLoading = false,
                                 isRegistered = true,
-                                navigateTo = ScreenRoutes.Login
+                                showSuccessDialog = true
                             )
                         }
                     }

@@ -120,7 +120,7 @@ private fun RegisterScreenContent(
                 maxHeight = maxHeight,
                 maxWidth = maxWidth,
                 isLandscape = isLandscape,
-                centerContent = isVeryTallScreen  // NEW
+                centerContent = isVeryTallScreen
             )
 
             WindowWidthSizeClass.Medium -> MediumLayout(
@@ -132,7 +132,7 @@ private fun RegisterScreenContent(
                 bottomPadding = bottomPadding,
                 maxHeight = maxHeight,
                 maxWidth = maxWidth,
-                centerContent = isVeryTallScreen  // NEW
+                centerContent = isVeryTallScreen
             )
 
             else -> ExpandedLayout(
@@ -144,12 +144,13 @@ private fun RegisterScreenContent(
                 bottomPadding = bottomPadding,
                 maxHeight = maxHeight,
                 maxWidth = maxWidth,
-                centerContent = isVeryTallScreen  // NEW
+                centerContent = isVeryTallScreen
             )
         }
     }
     if (uiState.showSuccessDialog) {
         AlertDialog(
+            containerColor = Color.White,
             onDismissRequest = { onEvent(RegisterEvent.SignUpSuccessClicked) },
             title = { Text("Success") },
             text = { Text("Account created successfully!") },

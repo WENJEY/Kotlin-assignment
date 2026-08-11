@@ -143,9 +143,18 @@ private fun ProfileScreenContent(
     }
     if (uiState.showLogoutDialog) {
         AlertDialog(
+            containerColor = Color.White,
             onDismissRequest = { onEvent(ProfileEvent.LogoutCanceled) },
-            title = { Text("Logout") },
-            text = { Text("Are you sure you want to log out?") },
+            title = {
+                Text(
+                    "Logout",
+                    color = Color.Black
+                ) },
+            text = {
+                Text(
+                    "Are you sure you want to log out?",
+                    color = Color.Gray
+                )},
             confirmButton = {
                 TextButton(onClick = { onEvent(ProfileEvent.LogoutConfirmed) }) {
                     Text("Logout", color = Color(0xFFFF4D4F))
@@ -153,7 +162,7 @@ private fun ProfileScreenContent(
             },
             dismissButton = {
                 TextButton(onClick = { onEvent(ProfileEvent.LogoutCanceled) }) {
-                    Text("Cancel")
+                    Text("Cancel",color = Color.Blue)
                 }
             }
         )

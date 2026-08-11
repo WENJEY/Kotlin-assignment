@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.assignment.navigation.ScreenRoutes
+import com.example.assignment.ui.register.RegisterEvent
 
 @Composable
 fun ResetPasswordScreen(
@@ -33,34 +37,17 @@ fun ResetPasswordScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-
-    // ---------------------------------------------------------
-    // HANDLE BACK TO LOGIN
-    // ---------------------------------------------------------
-
     LaunchedEffect(uiState.navigateToLogin) {
-
         if (uiState.navigateToLogin) {
-
             navController.navigate(ScreenRoutes.Login.route) {
-
                 popUpTo(ScreenRoutes.ResetPassword.route) {
                     inclusive = true
                 }
-
                 launchSingleTop = true
             }
-
-            viewModel.onEvent(
-                ResetPasswordEvent.NavigationHandled
-            )
+            viewModel.onEvent(ResetPasswordEvent.NavigationHandled)
         }
     }
-
-
-    // ---------------------------------------------------------
-    // SCREEN CONTENT
-    // ---------------------------------------------------------
 
     ResetPasswordContent(
         uiState = uiState,
@@ -81,23 +68,10 @@ private fun ResetPasswordContent(
     ) {
 
         val isLandscape = maxWidth > maxHeight
-
-        val isNarrowPhone =
-            maxWidth < 360.dp
-
-        val isVeryTallScreen =
-            maxHeight > 1000.dp
-
-
-        // ---------------------------------------------------------
-        // HORIZONTAL PADDING
-        // Same as Forgot Password
-        // ---------------------------------------------------------
-
+        val isNarrowPhone = maxWidth < 360.dp
+        val isVeryTallScreen = maxHeight > 1000.dp
         val horizontalPadding = when (windowSize) {
-
             WindowWidthSizeClass.Compact -> {
-
                 if (isNarrowPhone) {
                     16.dp
                 } else {
@@ -106,72 +80,33 @@ private fun ResetPasswordContent(
             }
 
             WindowWidthSizeClass.Medium -> 48.dp
-
             WindowWidthSizeClass.Expanded -> 64.dp
-
             else -> 24.dp
         }
 
-
-        // ---------------------------------------------------------
-        // TITLE SIZE
-        // Same as Forgot Password
-        // ---------------------------------------------------------
-
         val titleSize: TextUnit = when {
-
-            maxWidth < 340.dp ->
-                27.sp
-
-            windowSize ==
-                    WindowWidthSizeClass.Compact ->
-                34.sp
-
-            windowSize ==
-                    WindowWidthSizeClass.Medium ->
-                40.sp
-
-            else ->
-                36.sp
+            maxWidth < 340.dp -> 27.sp
+            windowSize == WindowWidthSizeClass.Compact -> 30.sp
+            windowSize == WindowWidthSizeClass.Medium -> 40.sp
+            else -> 36.sp
         }
 
-
-        // ---------------------------------------------------------
-        // LOGO / LOCK SIZE
-        // Same sizing logic
-        // ---------------------------------------------------------
-
         val logoSize = when (windowSize) {
-
             WindowWidthSizeClass.Compact -> {
-
                 if (isNarrowPhone) {
-                    108.dp
+                    100.dp
                 } else {
-                    140.dp
+                    132.dp
                 }
             }
 
-            WindowWidthSizeClass.Medium ->
-                144.dp
-
-            WindowWidthSizeClass.Expanded ->
-                188.dp
-
-            else ->
-                144.dp
+            WindowWidthSizeClass.Medium -> 144.dp
+            WindowWidthSizeClass.Expanded -> 188.dp
+            else -> 144.dp
         }
 
-
-        // ---------------------------------------------------------
-        // FORM MAX WIDTH
-        // Same as Forgot Password
-        // ---------------------------------------------------------
-
         val formMaxWidth = when (windowSize) {
-
             WindowWidthSizeClass.Compact -> {
-
                 if (isLandscape) {
                     480.dp
                 } else {
@@ -179,31 +114,10 @@ private fun ResetPasswordContent(
                 }
             }
 
-            WindowWidthSizeClass.Medium ->
-                520.dp
-
-            WindowWidthSizeClass.Expanded ->
-                480.dp
-
-            else ->
-                Dp.Unspecified
+            WindowWidthSizeClass.Medium -> 520.dp
+            WindowWidthSizeClass.Expanded -> 480.dp
+            else -> Dp.Unspecified
         }
-
-
-        // ---------------------------------------------------------
-        // BOTTOM NAVIGATION BAR PADDING
-        // ---------------------------------------------------------
-
-        val bottomPadding =
-            WindowInsets.navigationBars
-                .asPaddingValues()
-                .calculateBottomPadding()
-
-
-        // ---------------------------------------------------------
-        // BLUE BACKGROUND
-        // Same as Forgot Password
-        // ---------------------------------------------------------
 
         Box(
             modifier = Modifier
@@ -218,20 +132,8 @@ private fun ResetPasswordContent(
                     )
                 )
         )
-
-
-        // ---------------------------------------------------------
-        // RESPONSIVE LAYOUT
-        // ---------------------------------------------------------
-
         when (windowSize) {
-
-            // =====================================================
-            // COMPACT
-            // =====================================================
-
             WindowWidthSizeClass.Compact -> {
-
                 CompactLayout(
                     uiState = uiState,
                     onEvent = onEvent,
@@ -239,21 +141,12 @@ private fun ResetPasswordContent(
                     titleSize = titleSize,
                     formMaxWidth = formMaxWidth,
                     horizontalPadding = horizontalPadding,
-                    bottomPadding = bottomPadding,
                     maxHeight = maxHeight,
-                    maxWidth = maxWidth,
                     centerContent = isVeryTallScreen
                 )
             }
-
-
-            // =====================================================
-            // MEDIUM
-            // TEMPORARILY USE COMPACT
-            // =====================================================
 
             WindowWidthSizeClass.Medium -> {
-
                 CompactLayout(
                     uiState = uiState,
                     onEvent = onEvent,
@@ -261,16 +154,12 @@ private fun ResetPasswordContent(
                     titleSize = titleSize,
                     formMaxWidth = formMaxWidth,
                     horizontalPadding = horizontalPadding,
-                    bottomPadding = bottomPadding,
                     maxHeight = maxHeight,
-                    maxWidth = maxWidth,
                     centerContent = isVeryTallScreen
                 )
             }
-
 
             WindowWidthSizeClass.Expanded -> {
-
                 CompactLayout(
                     uiState = uiState,
                     onEvent = onEvent,
@@ -278,28 +167,25 @@ private fun ResetPasswordContent(
                     titleSize = titleSize,
                     formMaxWidth = formMaxWidth,
                     horizontalPadding = horizontalPadding,
-                    bottomPadding = bottomPadding,
                     maxHeight = maxHeight,
-                    maxWidth = maxWidth,
                     centerContent = isVeryTallScreen
                 )
             }
-
-
-            else -> {
-                CompactLayout(
-                    uiState = uiState,
-                    onEvent = onEvent,
-                    logoSize = logoSize,
-                    titleSize = titleSize,
-                    formMaxWidth = formMaxWidth,
-                    horizontalPadding = horizontalPadding,
-                    bottomPadding = bottomPadding,
-                    maxHeight = maxHeight,
-                    maxWidth = maxWidth,
-                    centerContent = isVeryTallScreen
-                )
-            }
+        }
+        if (uiState.showSuccessDialog) {
+            AlertDialog(
+                containerColor = Color.White,
+                onDismissRequest = { onEvent(ResetPasswordEvent.ResetSuccessClicked) },
+                title = { Text("Success",color = Color.Black)},
+                text = { Text("Account created successfully!",color = Color.Gray) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        onEvent(ResetPasswordEvent.ResetSuccessClicked)
+                    }) {
+                        Text("Go to Login",color = Color.Blue)
+                    }
+                }
+            )
         }
     }
 }

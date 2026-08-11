@@ -33,7 +33,6 @@ object RegisterValidator {
     fun validateConfirmPassword(password: String, confirmPassword: String): String? = when {
         confirmPassword.isBlank() -> "Please confirm your password"
         confirmPassword != password -> "Passwords do not match"
-
         else -> null
     }
 }

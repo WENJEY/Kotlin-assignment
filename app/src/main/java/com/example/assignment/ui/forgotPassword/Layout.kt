@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -45,8 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.LocalAutofillHighlightColor
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import com.example.assignment.ui.theme.BluePrimary
 import com.example.assignment.ui.theme.BorderGray
@@ -68,6 +73,8 @@ fun CompactLayout(
 ) {
 
     val scrollState = rememberScrollState()
+    val isKeyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -102,6 +109,7 @@ fun CompactLayout(
         },
 
         bottomBar = {
+            if (!isKeyboardVisible) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -136,6 +144,7 @@ fun CompactLayout(
                     )
                 }
             }
+            }
         }
 
     ) { innerPadding ->
@@ -143,7 +152,6 @@ fun CompactLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding()
                 .verticalScroll(scrollState)
                 .padding(
                     start = horizontalPadding,
@@ -293,6 +301,9 @@ fun CompactLayout(
                     Spacer(modifier = Modifier.height(22.dp))
 
                     // Email Field
+                    CompositionLocalProvider(
+                        LocalAutofillHighlightColor provides Color.Transparent
+                    ){
                     OutlinedTextField(
                         value = uiState.email,
 
@@ -344,6 +355,7 @@ fun CompactLayout(
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
+                }
 
 
                     Spacer(modifier = Modifier.height(18.dp))

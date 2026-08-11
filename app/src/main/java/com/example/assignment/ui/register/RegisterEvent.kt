@@ -11,8 +11,6 @@ sealed class RegisterEvent {
     data class ConfirmPasswordChanged (val value : String) : RegisterEvent()
 
     data object SignUpClicked : RegisterEvent()
-    data object ForgotPasswordClicked : RegisterEvent()
-
     data object SignUpSuccessClicked : RegisterEvent()
     data object LoginClicked : RegisterEvent()
     data object NavigationHandled : RegisterEvent()
