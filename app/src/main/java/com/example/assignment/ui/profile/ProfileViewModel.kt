@@ -47,6 +47,9 @@ class ProfileViewModel(
             }
 
             ProfileEvent.NavigationHandled -> clearNavigation()
+            is ProfileEvent.AvatarCropped -> {
+                _uiState.update { it.copy(profileImageUrl = event.imageUri) }
+            }
             is ProfileEvent.TabSelected -> selectTab(event.tab)
         }
     }

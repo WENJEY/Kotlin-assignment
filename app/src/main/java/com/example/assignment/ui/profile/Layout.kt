@@ -1,6 +1,5 @@
 package com.example.assignment.ui.profile
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -42,6 +41,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +56,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.example.assignment.ui.utils.bottomProfileItems
 import com.example.assignment.ui.utils.sideProfileItems
 
@@ -251,7 +256,7 @@ private fun ProfileContent(
         ProfileHeader(
             uiState = uiState,
             avatarSize = avatarSize,
-            onEditAvatar = { }
+            onAvatarCropped = { onEvent(ProfileEvent.AvatarCropped(it)) }
         )
 
         Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 32.dp))
@@ -270,9 +275,16 @@ private fun ProfileContent(
 private fun ProfileHeader(
     uiState: ProfileUiState,
     avatarSize: Dp,
-    onEditAvatar: () -> Unit,
+    onAvatarCropped: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var imageToCrop by remember { mutableStateOf<android.net.Uri?>(null) }
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        imageToCrop = uri
+    }
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -289,12 +301,23 @@ private fun ProfileHeader(
         ProfileAvatar(
             profileImageUrl = uiState.profileImageUrl,
             size = avatarSize,
-            onEditClick = onEditAvatar
+            onEditClick = { imagePicker.launch("image/*") }
         )
 
         Spacer(modifier = Modifier.height(18.dp))
 
         ProfileGreeting(username = uiState.username)
+    }
+
+    imageToCrop?.let { uri ->
+        CropAvatarDialog(
+            imageUri = uri,
+            onDismiss = { imageToCrop = null },
+            onCropConfirmed = { croppedUri ->
+                imageToCrop = null
+                onAvatarCropped(croppedUri.toString())
+            }
+        )
     }
 }
 
