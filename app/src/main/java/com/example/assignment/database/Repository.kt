@@ -9,6 +9,7 @@ interface Repository {
     fun currentUser(): User?
     fun isLoggedIn(): Boolean
     suspend fun logout()
+    suspend fun uploadProfileAvatar(imageBytes: ByteArray): Result<String>
 
     suspend fun resetPassword(email: String): Result<Unit>
 }

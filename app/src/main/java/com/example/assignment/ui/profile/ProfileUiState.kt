@@ -5,6 +5,7 @@ data class ProfileUiState(
     val profileImageUrl: String? = null,
     val selectedTab: ProfileTab = ProfileTab.Profile,
     val isLoading: Boolean = false,
+    val isSavingAvatar: Boolean = false,
     val errorMessage: String? = null,
     val showLogoutDialog : Boolean = false,
     val navigateTo: String? = null

@@ -5,12 +5,15 @@ import com.example.assignment.ui.utils.Result
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.storage.storage
+import io.ktor.http.ContentType
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
 class SupabaseRepository : Repository {
     private val auth get() = SupabaseClientProvider.client.auth
+    private val storage get() = SupabaseClientProvider.client.storage
 
     override fun isLoggedIn(): Boolean = auth.currentUserOrNull() != null
 
@@ -18,12 +21,37 @@ class SupabaseRepository : Repository {
         User(
             id = user.id,
             email = user.email.orEmpty(),
-            username = user.userMetadata?.get("username")?.jsonPrimitive?.content.orEmpty()
+            username = user.userMetadata?.get("username")?.jsonPrimitive?.content.orEmpty(),
+            profileImageUrl = user.userMetadata?.get("avatar_url")?.jsonPrimitive?.content.orEmpty()
         )
     }
 
     override suspend fun logout() {
         auth.signOut()
+    }
+
+    override suspend fun uploadProfileAvatar(imageBytes: ByteArray): Result<String> = try {
+        val userId = auth.currentUserOrNull()?.id
+            ?: return Result.Error("You must be logged in to update your profile photo")
+        val path = "$userId/avatar.jpg"
+        val bucket = storage.from(AVATARS_BUCKET)
+
+        bucket.upload(path, imageBytes) {
+            upsert = true
+            contentType = ContentType.Image.JPEG
+        }
+
+        // Cache-bust the stable object path so Coil immediately displays replacements.
+        val avatarUrl = "${bucket.publicUrl(path)}?v=${System.currentTimeMillis()}"
+        auth.updateUser {
+            data {
+                put("avatar_url", avatarUrl)
+            }
+        }
+        Result.Success(avatarUrl)
+    } catch (e: Exception) {
+        Log.e("SupabaseRepository", "Profile avatar upload failed", e)
+        Result.Error("Unable to save your profile photo. Please try again.")
     }
 
     override suspend fun getEmailByUsername(username: String): Result<String> = try {
@@ -145,3 +173,5 @@ class SupabaseRepository : Repository {
     }
 
 }
+
+private const val AVATARS_BUCKET = "avatars"

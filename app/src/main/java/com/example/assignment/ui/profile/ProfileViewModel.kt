@@ -6,6 +6,7 @@ import com.example.assignment.database.Repository
 import com.example.assignment.database.SupabaseRepository
 import com.example.assignment.navigation.ProfileRoutes
 import com.example.assignment.navigation.ScreenRoutes
+import com.example.assignment.ui.utils.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,7 +49,7 @@ class ProfileViewModel(
 
             ProfileEvent.NavigationHandled -> clearNavigation()
             is ProfileEvent.AvatarCropped -> {
-                _uiState.update { it.copy(profileImageUrl = event.imageUri) }
+                uploadAvatar(event.imageUri)
             }
             is ProfileEvent.TabSelected -> selectTab(event.tab)
         }
@@ -60,10 +61,38 @@ class ProfileViewModel(
             it.copy(
                 username = user?.username.orEmpty(),
                 email = user?.email.orEmpty(),
-                profileImageUrl = null,
+                profileImageUrl = user?.profileImageUrl,
                 isLoading = false,
                 errorMessage = if (user == null) "Unable to load your profile" else null
             )
+        }
+    }
+
+    private fun uploadAvatar(imageUri: String) {
+        _uiState.update {
+            it.copy(profileImageUrl = imageUri, isSavingAvatar = true, errorMessage = null)
+        }
+        viewModelScope.launch {
+            val bytes = runCatching {
+                java.io.File(requireNotNull(android.net.Uri.parse(imageUri).path)).readBytes()
+            }.getOrElse {
+                _uiState.update {
+                    it.copy(
+                        isSavingAvatar = false,
+                        errorMessage = "Unable to prepare your profile photo"
+                    )
+                }
+                return@launch
+            }
+
+            when (val result = repository.uploadProfileAvatar(bytes)) {
+                is Result.Success -> _uiState.update {
+                    it.copy(profileImageUrl = result.data, isSavingAvatar = false)
+                }
+                is Result.Error -> _uiState.update {
+                    it.copy(isSavingAvatar = false, errorMessage = result.message)
+                }
+            }
         }
     }
 
