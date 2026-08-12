@@ -97,6 +97,13 @@ private fun ProfileScreenContent(
             .asPaddingValues()
             .calculateBottomPadding()
 
+        val avatarSize = when (windowSize) {
+            WindowWidthSizeClass.Compact -> 110.dp
+            WindowWidthSizeClass.Medium -> 140.dp
+            WindowWidthSizeClass.Expanded -> 160.dp
+            else -> 120.dp
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -118,6 +125,7 @@ private fun ProfileScreenContent(
                 snackBarHostState = snackBarHostState,
                 horizontalPadding = horizontalPadding,
                 bottomPadding = bottomPadding,
+                avatarSize = avatarSize,
                 isLandscape = isLandscape,
                 centerContent = isVeryTallScreen
             )
@@ -127,6 +135,7 @@ private fun ProfileScreenContent(
                 onEvent = onEvent,
                 snackBarHostState = snackBarHostState,
                 horizontalPadding = horizontalPadding,
+                avatarSize = avatarSize,
                 isLandscape = isLandscape,
                 centerContent = isVeryTallScreen
             )
@@ -136,6 +145,7 @@ private fun ProfileScreenContent(
                 onEvent = onEvent,
                 snackBarHostState = snackBarHostState,
                 horizontalPadding = horizontalPadding,
+                avatarSize = avatarSize,
                 isLandscape = isLandscape,
                 centerContent = isVeryTallScreen
             )

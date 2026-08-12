@@ -94,4 +94,5 @@ class ProfileViewModel(
     private fun clearNavigation() {
         _uiState.update { it.copy(navigateTo = null) }
     }
+
 }

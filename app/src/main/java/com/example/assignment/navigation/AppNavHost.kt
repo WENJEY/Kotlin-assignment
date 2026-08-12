@@ -33,7 +33,7 @@ fun MyAppNavHost(
         SupabaseRepository().isLoggedIn() ->
             ScreenRoutes.Profile.route
         else ->
-            ScreenRoutes.ResetPassword.route
+            ScreenRoutes.Profile.route
     }
 
     NavHost(

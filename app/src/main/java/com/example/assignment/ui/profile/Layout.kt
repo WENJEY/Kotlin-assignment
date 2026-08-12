@@ -1,6 +1,8 @@
 package com.example.assignment.ui.profile
 
+import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -35,6 +38,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -43,7 +47,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -64,6 +69,7 @@ fun ProfileCompactLayout(
     onEvent: (ProfileEvent) -> Unit,
     snackBarHostState: SnackbarHostState,
     horizontalPadding: Dp,
+    avatarSize: Dp,
     bottomPadding: Dp,
     isLandscape: Boolean,
     centerContent: Boolean,
@@ -99,6 +105,7 @@ fun ProfileCompactLayout(
                 uiState = uiState,
                 onEvent = onEvent,
                 horizontalPadding = horizontalPadding,
+                avatarSize = avatarSize,
                 isLandscape = isLandscape,
                 centerContent = centerContent,
                 windowSize = WindowWidthSizeClass.Compact
@@ -115,6 +122,7 @@ fun ProfileMediumLayout(
     onEvent: (ProfileEvent) -> Unit,
     snackBarHostState: SnackbarHostState,
     horizontalPadding: Dp,
+    avatarSize : Dp,
     isLandscape: Boolean,
     centerContent: Boolean,
     modifier: Modifier = Modifier
@@ -149,6 +157,7 @@ fun ProfileMediumLayout(
                 uiState = uiState,
                 onEvent = onEvent,
                 horizontalPadding = horizontalPadding,
+                avatarSize = avatarSize,
                 isLandscape = isLandscape,
                 centerContent = centerContent,
                 windowSize = WindowWidthSizeClass.Medium
@@ -165,6 +174,7 @@ fun ProfileExpandedLayout(
     onEvent: (ProfileEvent) -> Unit,
     snackBarHostState: SnackbarHostState,
     horizontalPadding: Dp,
+    avatarSize : Dp,
     isLandscape: Boolean,
     centerContent: Boolean,
     modifier: Modifier = Modifier
@@ -206,6 +216,7 @@ fun ProfileExpandedLayout(
                         uiState = uiState,
                         onEvent = onEvent,
                         horizontalPadding = horizontalPadding,
+                        avatarSize = avatarSize,
                         isLandscape = isLandscape,
                         centerContent = centerContent,
                         windowSize = WindowWidthSizeClass.Expanded
@@ -224,6 +235,7 @@ private fun ProfileContent(
     onEvent: (ProfileEvent) -> Unit,
     horizontalPadding: Dp,
     isLandscape: Boolean,
+    avatarSize : Dp,
     centerContent: Boolean,
     windowSize : WindowWidthSizeClass,
     modifier: Modifier = Modifier
@@ -238,8 +250,8 @@ private fun ProfileContent(
 
         ProfileHeader(
             uiState = uiState,
-            avatarSize = if (isLandscape) 104.dp else 160.dp,
-            modifier = Modifier.fillMaxWidth()
+            avatarSize = avatarSize,
+            onEditAvatar = { }
         )
 
         Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 32.dp))
@@ -258,6 +270,7 @@ private fun ProfileContent(
 private fun ProfileHeader(
     uiState: ProfileUiState,
     avatarSize: Dp,
+    onEditAvatar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -274,8 +287,9 @@ private fun ProfileHeader(
         Spacer(modifier = Modifier.height(28.dp))
 
         ProfileAvatar(
-            username = uiState.username,
-            size = avatarSize
+            profileImageUrl = uiState.profileImageUrl,
+            size = avatarSize,
+            onEditClick = onEditAvatar
         )
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -285,24 +299,61 @@ private fun ProfileHeader(
 }
 
 @Composable
-private fun ProfileAvatar(
-    username: String,
+fun ProfileAvatar(
+    profileImageUrl: String?,
     size: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onEditClick: () -> Unit
 ) {
     Box(
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.16f)),
-        contentAlignment = Alignment.Center
+        modifier = modifier.size(size),
+        contentAlignment = Alignment.BottomEnd
     ) {
-        Text(
-            text = username.firstOrNull()?.uppercaseChar()?.toString() ?: "U",
-            color = Color.White,
-            style = MaterialTheme.typography.displayLarge,
-            fontWeight = FontWeight.Bold
-        )
+
+        if (!profileImageUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = profileImageUrl,
+                contentDescription = "Profile picture",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .border(width = 2.dp, color = Color.White, shape = CircleShape)
+                    .clickable { onEditClick() }
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .border(2.dp, Color.White, CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable(onClick = onEditClick),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(size * 0.5f)
+                )
+            }
+        }
+
+        Surface(
+            modifier = Modifier
+                .size(34.dp)
+                .clickable(onClick = onEditClick),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary,
+            shadowElevation = 4.dp
+        ) {
+            Icon(
+                imageVector = Icons.Default.CameraAlt,
+                contentDescription = "Edit",
+                tint = Color.White,
+                modifier = Modifier.padding(6.dp)
+            )
+        }
     }
 }
 
