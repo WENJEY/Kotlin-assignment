@@ -3,8 +3,10 @@ data class ProfileUiState(
     val username: String = "",
     val email: String = "",
     val profileImageUrl: String? = null,
+    val avatarPreviewBytes: ByteArray? = null,
     val selectedTab: ProfileTab = ProfileTab.Profile,
     val isLoading: Boolean = false,
+    val isSendingChangePassword: Boolean = false,
     val errorMessage: String? = null,
     val showLogoutDialog : Boolean = false,
     val navigateTo: String? = null

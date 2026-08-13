@@ -9,6 +9,7 @@ sealed class ProfileEvent {
     data object NavigationHandled : ProfileEvent()
     data object LogoutConfirmed : ProfileEvent()
     data object LogoutCanceled : ProfileEvent()
+    data object ErrorShown : ProfileEvent()
     data class AvatarCropped(val imageUri: String) : ProfileEvent()
     data class TabSelected(val tab: ProfileTab) : ProfileEvent()
 }

@@ -5,9 +5,9 @@ sealed class ForgotPasswordEvent {
 
     data object BackToLoginClicked : ForgotPasswordEvent();
 
-    data object SendResetLinkClicked : ForgotPasswordEvent();
+    data object SendVerificationCodeClicked : ForgotPasswordEvent();
 
     data object NavigationHandled : ForgotPasswordEvent();
+
+    data object ScreenResumed : ForgotPasswordEvent();
 }
-
-

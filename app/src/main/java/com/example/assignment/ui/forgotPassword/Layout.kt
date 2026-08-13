@@ -1,7 +1,8 @@
 package com.example.assignment.ui.forgotPassword
 
-import android.graphics.Paint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,14 +46,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.LocalAutofillHighlightColor
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import com.example.assignment.ui.theme.BlueDark
 import com.example.assignment.ui.theme.BluePrimary
 import com.example.assignment.ui.theme.BorderGray
 import com.example.assignment.ui.theme.ErrorRed
@@ -212,7 +214,7 @@ fun CompactLayout(
 
             Text(
                 text = "Don't worry! Enter your email address\n" +
-                        "and we'll send you a link to reset your password.",
+                    "and we'll send you a verification code.",
                 fontSize = 16.sp,
                 lineHeight = 23.sp,
                 textAlign = TextAlign.Center,
@@ -245,172 +247,7 @@ fun CompactLayout(
                             vertical = 24.dp
                         )
                 ) {
-                    // Email Header
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        Box(
-                            modifier = Modifier
-                                .size(54.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    BluePrimary.copy(
-                                        alpha = 0.10f
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = null,
-                                tint = BluePrimary,
-                                modifier = Modifier.size(27.dp)
-                            )
-                        }
-
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
-
-                            Text(
-                                text = "Enter your email address",
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextDark
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Text(
-                                text = "We'll send a password reset link to your email.",
-                                fontSize = 13.sp,
-                                lineHeight = 18.sp,
-                                color = TextGray
-                            )
-                        }
-                    }
-
-
-                    Spacer(modifier = Modifier.height(22.dp))
-
-                    // Email Field
-                    CompositionLocalProvider(
-                        LocalAutofillHighlightColor provides Color.Transparent
-                    ){
-                    OutlinedTextField(
-                        value = uiState.email,
-
-                        onValueChange = {
-                            onEvent(
-                                ForgotPasswordEvent.EmailChanged(it)
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        enabled = !uiState.isLoading,
-                        placeholder = {
-                            Text(
-                                text = "Email address",
-                                color = TextGray
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = null,
-                                tint = TextGray
-                            )
-                        },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email
-                        ),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = BluePrimary,
-                            unfocusedBorderColor = BorderGray,
-                            focusedTextColor = TextDark,
-                            unfocusedTextColor = TextDark,
-                            cursorColor = BluePrimary
-                        ),
-                        isError = uiState.error != null
-                    )
-                    // Error
-                    uiState.error?.let { error ->
-
-                        Spacer(
-                            modifier = Modifier.height(7.dp)
-                        )
-
-                        Text(
-                            text = error,
-                            color = ErrorRed,
-                            fontSize = 13.sp,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-
-
-                    Spacer(modifier = Modifier.height(18.dp))
-                    // Send reset link
-                    Button(
-                        onClick = {
-                            onEvent(
-                                ForgotPasswordEvent.SendResetLinkClicked
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        enabled = !uiState.isLoading,
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = BluePrimary,
-                            disabledContainerColor =
-                                BluePrimary.copy(alpha = 0.6f)
-                        )
-                    ) {
-                        if (uiState.isLoading) {
-
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(22.dp),
-                                color = Color.White,
-                                strokeWidth = 2.5.dp
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Send,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-
-                            Text(
-                                text = "Send Reset Link",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                    // Success message
-                    uiState.message?.let { message ->
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = message,
-                            color = SuccessGreen,
-                            fontSize = 13.sp,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
+                    EmailForm(uiState = uiState, onEvent = onEvent)
                 }
             }
 
@@ -418,3 +255,179 @@ fun CompactLayout(
         }
     }
 }
+
+@Composable
+private fun EmailForm(
+    uiState: ForgotPasswordUiState,
+    onEvent: (ForgotPasswordEvent) -> Unit
+) {
+    FormHeader()
+
+    Spacer(modifier = Modifier.height(22.dp))
+
+    CompositionLocalProvider(
+        LocalAutofillHighlightColor provides Color.Transparent
+    ) {
+        OutlinedTextField(
+            value = uiState.email,
+            onValueChange = {
+                onEvent(ForgotPasswordEvent.EmailChanged(it))
+            },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            enabled = !uiState.isLoading,
+            placeholder = {
+                Text(text = "Email address", color = TextGray)
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Email,
+                    contentDescription = null,
+                    tint = TextGray
+                )
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email
+            ),
+            shape = RoundedCornerShape(14.dp),
+            colors = formFieldColors(),
+            isError = uiState.error != null
+        )
+    }
+
+    FormError(uiState.error)
+
+    Spacer(modifier = Modifier.height(18.dp))
+
+    FormButton(
+        isLoading = uiState.isLoading,
+        enabled = !uiState.isLoading && uiState.resendCooldownSeconds == 0,
+        icon = Icons.AutoMirrored.Filled.Send,
+        text = if (uiState.resendCooldownSeconds > 0) {
+            "Send again in ${uiState.resendCooldownSeconds}s"
+        } else {
+            "Send Verification Code"
+        },
+        onClick = { onEvent(ForgotPasswordEvent.SendVerificationCodeClicked) }
+    )
+
+    FormMessage(uiState.message)
+}
+
+@Composable
+private fun FormHeader() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(54.dp)
+                .clip(CircleShape)
+                .background(BluePrimary.copy(alpha = 0.10f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Email,
+                contentDescription = null,
+                tint = BluePrimary,
+                modifier = Modifier.size(27.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Enter your email address",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextDark
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "We'll send a verification code to your email.",
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                color = TextGray
+            )
+        }
+    }
+}
+
+@Composable
+private fun FormButton(
+    isLoading: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean = !isLoading
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        enabled = enabled,
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = BluePrimary,
+            disabledContainerColor = BluePrimary.copy(alpha = 0.6f)
+        )
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(22.dp),
+                color = Color.White,
+                strokeWidth = 2.5.dp
+            )
+        } else {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = text,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun FormError(error: String?) {
+    error?.let {
+        Spacer(modifier = Modifier.height(7.dp))
+        Text(
+            text = it,
+            color = ErrorRed,
+            fontSize = 13.sp,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun FormMessage(message: String?) {
+    message?.let {
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = it,
+            color = SuccessGreen,
+            fontSize = 13.sp,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun formFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = BluePrimary,
+    unfocusedBorderColor = BorderGray,
+    focusedTextColor = TextDark,
+    unfocusedTextColor = TextDark,
+    cursorColor = BluePrimary
+)

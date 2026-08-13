@@ -22,7 +22,6 @@ class MainActivity : ComponentActivity() {
 
         SupabaseClientProvider.client.handleDeeplinks(intent)
         enableEdgeToEdge()
-        val deepLink = intent?.data
 
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightNavigationBars = true
@@ -34,8 +33,7 @@ class MainActivity : ComponentActivity() {
             AssignmentTheme {
                 val windowSize = calculateWindowSizeClass(this)
                     MyAppNavHost(
-                        windowSize = windowSize.widthSizeClass,
-                        deepLink = deepLink
+                        windowSize = windowSize.widthSizeClass
                     )
 
             }

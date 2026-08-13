@@ -41,8 +41,9 @@ android {
 
 dependencies {
 
-    // AsyncImage
+    // AsyncImage (Coil 3 needs an explicit network module for https URLs)
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))

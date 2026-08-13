@@ -49,6 +49,24 @@ fun ResetPasswordScreen(
         }
     }
 
+    LaunchedEffect(uiState.navigateToProfile) {
+        if (uiState.navigateToProfile) {
+            val popped = navController.popBackStack(
+                ScreenRoutes.Profile.route,
+                inclusive = false
+            )
+            if (!popped) {
+                navController.navigate(ScreenRoutes.Profile.route) {
+                    popUpTo(ScreenRoutes.ResetPassword.route) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+            viewModel.onEvent(ResetPasswordEvent.NavigationHandled)
+        }
+    }
+
     ResetPasswordContent(
         uiState = uiState,
         windowSize = windowSize,
@@ -177,12 +195,15 @@ private fun ResetPasswordContent(
                 containerColor = Color.White,
                 onDismissRequest = { onEvent(ResetPasswordEvent.ResetSuccessClicked) },
                 title = { Text("Success",color = Color.Black)},
-                text = { Text("Account created successfully!",color = Color.Gray) },
+                text = { Text("Password updated successfully!",color = Color.Gray) },
                 confirmButton = {
                     TextButton(onClick = {
                         onEvent(ResetPasswordEvent.ResetSuccessClicked)
                     }) {
-                        Text("Go to Login",color = Color.Blue)
+                        Text(
+                            if (uiState.isChangePassword) "Back to Profile" else "Go to Login",
+                            color = Color.Blue
+                        )
                     }
                 }
             )

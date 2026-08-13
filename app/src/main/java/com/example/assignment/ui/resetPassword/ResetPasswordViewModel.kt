@@ -1,9 +1,11 @@
 package com.example.assignment.ui.resetPassword
 
 import io.github.jan.supabase.auth.auth
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.assignment.database.SupabaseClientProvider
+import com.example.assignment.navigation.PasswordResetMode
 import com.example.assignment.ui.utils.RegisterValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,14 +13,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ResetPasswordViewModel : ViewModel() {
+class ResetPasswordViewModel(
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     private val auth =
         SupabaseClientProvider.client.auth
+    private val isChangePassword =
+        savedStateHandle.get<String>("mode") == PasswordResetMode.Change
 
     private val _uiState =
         MutableStateFlow(
-            ResetPasswordUiState()
+            ResetPasswordUiState(isChangePassword = isChangePassword)
         )
 
     val uiState: StateFlow<ResetPasswordUiState> =
@@ -73,10 +79,11 @@ class ResetPasswordViewModel : ViewModel() {
             }
 
             ResetPasswordEvent.ResetSuccessClicked -> {
-                _uiState.update{
+                _uiState.update {
                     it.copy(
                         showSuccessDialog = false,
-                        navigateToLogin = true
+                        navigateToLogin = !isChangePassword,
+                        navigateToProfile = isChangePassword
                     )
                 }
             }
@@ -84,7 +91,8 @@ class ResetPasswordViewModel : ViewModel() {
             ResetPasswordEvent.BackToLoginClicked -> {
                 _uiState.update {
                     it.copy(
-                        navigateToLogin = true
+                        navigateToLogin = !isChangePassword,
+                        navigateToProfile = isChangePassword
                     )
                 }
             }
@@ -92,7 +100,8 @@ class ResetPasswordViewModel : ViewModel() {
             ResetPasswordEvent.NavigationHandled -> {
                 _uiState.update {
                     it.copy(
-                        navigateToLogin = false
+                        navigateToLogin = false,
+                        navigateToProfile = false
                     )
                 }
             }

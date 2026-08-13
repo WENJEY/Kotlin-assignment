@@ -12,5 +12,7 @@ data class ResetPasswordUiState(
     val error: String? = null,
     val message: String? = null,
     val showSuccessDialog : Boolean = false,
-    val navigateToLogin: Boolean = false
+    val isChangePassword: Boolean = false,
+    val navigateToLogin: Boolean = false,
+    val navigateToProfile: Boolean = false
 )

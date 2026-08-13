@@ -1,5 +1,8 @@
 package com.example.assignment.ui.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -42,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,13 +55,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import com.example.assignment.ui.utils.bottomProfileItems
 import com.example.assignment.ui.utils.sideProfileItems
 
@@ -72,6 +77,7 @@ private val BottomUnselected = Color(0xFF8AA0B5)
 fun ProfileCompactLayout(
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit,
+    onAvatarSelected: (ByteArray) -> Unit,
     snackBarHostState: SnackbarHostState,
     horizontalPadding: Dp,
     avatarSize: Dp,
@@ -109,6 +115,7 @@ fun ProfileCompactLayout(
             ProfileContent(
                 uiState = uiState,
                 onEvent = onEvent,
+                onAvatarSelected = onAvatarSelected,
                 horizontalPadding = horizontalPadding,
                 avatarSize = avatarSize,
                 isLandscape = isLandscape,
@@ -125,6 +132,7 @@ fun ProfileCompactLayout(
 fun ProfileMediumLayout(
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit,
+    onAvatarSelected: (ByteArray) -> Unit,
     snackBarHostState: SnackbarHostState,
     horizontalPadding: Dp,
     avatarSize : Dp,
@@ -161,6 +169,7 @@ fun ProfileMediumLayout(
             ProfileContent(
                 uiState = uiState,
                 onEvent = onEvent,
+                onAvatarSelected = onAvatarSelected,
                 horizontalPadding = horizontalPadding,
                 avatarSize = avatarSize,
                 isLandscape = isLandscape,
@@ -177,6 +186,7 @@ fun ProfileMediumLayout(
 fun ProfileExpandedLayout(
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit,
+    onAvatarSelected: (ByteArray) -> Unit,
     snackBarHostState: SnackbarHostState,
     horizontalPadding: Dp,
     avatarSize : Dp,
@@ -220,6 +230,7 @@ fun ProfileExpandedLayout(
                     ProfileContent(
                         uiState = uiState,
                         onEvent = onEvent,
+                        onAvatarSelected = onAvatarSelected,
                         horizontalPadding = horizontalPadding,
                         avatarSize = avatarSize,
                         isLandscape = isLandscape,
@@ -238,6 +249,7 @@ fun ProfileExpandedLayout(
 private fun ProfileContent(
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit,
+    onAvatarSelected: (ByteArray) -> Unit,
     horizontalPadding: Dp,
     isLandscape: Boolean,
     avatarSize : Dp,
@@ -256,7 +268,7 @@ private fun ProfileContent(
         ProfileHeader(
             uiState = uiState,
             avatarSize = avatarSize,
-            onAvatarCropped = { onEvent(ProfileEvent.AvatarCropped(it)) }
+            onAvatarSelected = onAvatarSelected
         )
 
         Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 32.dp))
@@ -275,16 +287,16 @@ private fun ProfileContent(
 private fun ProfileHeader(
     uiState: ProfileUiState,
     avatarSize: Dp,
-    onAvatarCropped: (String) -> Unit,
+    onAvatarSelected: (ByteArray) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var imageToCrop by remember { mutableStateOf<android.net.Uri?>(null) }
+    val context = LocalContext.current
+    var imageToCrop by remember { mutableStateOf<Uri?>(null) }
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         imageToCrop = uri
     }
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -300,6 +312,7 @@ private fun ProfileHeader(
 
         ProfileAvatar(
             profileImageUrl = uiState.profileImageUrl,
+            previewBytes = uiState.avatarPreviewBytes,
             size = avatarSize,
             onEditClick = { imagePicker.launch("image/*") }
         )
@@ -308,14 +321,15 @@ private fun ProfileHeader(
 
         ProfileGreeting(username = uiState.username)
     }
-
     imageToCrop?.let { uri ->
         CropAvatarDialog(
             imageUri = uri,
             onDismiss = { imageToCrop = null },
             onCropConfirmed = { croppedUri ->
                 imageToCrop = null
-                onAvatarCropped(croppedUri.toString())
+                context.contentResolver.openInputStream(croppedUri)?.use { stream ->
+                    onAvatarSelected(stream.readBytes())
+                }
             }
         )
     }
@@ -326,24 +340,35 @@ fun ProfileAvatar(
     profileImageUrl: String?,
     size: Dp,
     modifier: Modifier = Modifier,
+    previewBytes: ByteArray? = null,
     onEditClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    // Prefer in-memory cropped bytes so the avatar never blanks after a successful upload.
+    val imageModel = previewBytes ?: profileImageUrl
     Box(
         modifier = modifier.size(size),
         contentAlignment = Alignment.BottomEnd
     ) {
 
-        if (!profileImageUrl.isNullOrBlank()) {
-            AsyncImage(
-                model = profileImageUrl,
-                contentDescription = "Profile picture",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .border(width = 2.dp, color = Color.White, shape = CircleShape)
-                    .clickable { onEditClick() }
-            )
+        if (imageModel != null && !(imageModel is String && imageModel.isBlank())) {
+            key(previewBytes?.size, profileImageUrl) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(imageModel)
+                        .memoryCacheKey(profileImageUrl)
+                        .diskCacheKey(profileImageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Profile picture",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                        .border(width = 2.dp, color = Color.White, shape = CircleShape)
+                        .clickable { onEditClick() }
+                )
+            }
         } else {
             Box(
                 modifier = Modifier

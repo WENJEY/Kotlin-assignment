@@ -128,7 +128,11 @@ internal fun CompactLayout(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to login",
+                        contentDescription = if (uiState.isChangePassword) {
+                            "Back to profile"
+                        } else {
+                            "Back to login"
+                        },
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
@@ -474,6 +478,7 @@ internal fun CompactLayout(
                 }
                 }
             }
+            if (!uiState.isChangePassword) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -509,6 +514,7 @@ internal fun CompactLayout(
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
             }
         }
     }

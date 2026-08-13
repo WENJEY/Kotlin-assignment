@@ -8,21 +8,24 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.assignment.navigation.ScreenRoutes
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import com.example.assignment.database.SupabaseClientProvider
 
 
 @Composable
@@ -32,6 +35,17 @@ fun ForgotPasswordScreen(
     viewModel: ForgotPasswordViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onEvent(ForgotPasswordEvent.ScreenResumed)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
 
     // ---------------------------------------------------------
@@ -47,6 +61,13 @@ fun ForgotPasswordScreen(
             viewModel.onEvent(
                 ForgotPasswordEvent.NavigationHandled
             )
+        }
+    }
+
+    LaunchedEffect(uiState.navigateToVerifyCode) {
+        if (uiState.navigateToVerifyCode) {
+            navController.navigate(ScreenRoutes.VerifyCode.createRoute(uiState.email))
+            viewModel.onEvent(ForgotPasswordEvent.NavigationHandled)
         }
     }
 

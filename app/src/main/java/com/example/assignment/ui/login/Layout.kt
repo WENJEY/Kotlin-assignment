@@ -10,7 +10,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,7 +47,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,14 +91,14 @@ internal fun CompactLayout(
     centerContent: Boolean = false,
 ) {
     val screenType = when {
-        maxHeight < 500.dp -> ScreenHeight.Small
-        maxHeight < 700.dp -> ScreenHeight.Medium
-        maxHeight < 900.dp -> ScreenHeight.Large
+        maxHeight <= 600.dp -> ScreenHeight.Small
+        maxHeight <= 800.dp -> ScreenHeight.Medium
+        maxHeight <= 900.dp -> ScreenHeight.Large
         else -> ScreenHeight.ExtraLarge
     }
 
-    val isShortScreen = maxHeight < 700.dp
-    val isVeryShortScreen = maxHeight < 500.dp
+    val isShortScreen = maxHeight <= 800.dp
+    val isVeryShortScreen = maxHeight <= 500.dp
     val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val scrollState = rememberScrollState()
 
@@ -543,10 +542,18 @@ private fun LoginForm(
 
             // Forgot password
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = {onEvent(LoginEvent.ForgotPasswordClicked)}) {
+                val forgotInteractionSource = remember { MutableInteractionSource() }
+                val isForgotPressed by forgotInteractionSource.collectIsPressedAsState()
+                TextButton(
+                    onClick = { onEvent(LoginEvent.ForgotPasswordClicked) },
+                    interactionSource = forgotInteractionSource,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = LinkBlue
+                    )
+                ) {
                     Text(
                         text = "Forgot password?",
-                        color = LinkBlue,
+                        color = if (isForgotPressed) BrandBlue else LinkBlue,
                         fontSize = forgotSize,
                         fontWeight = FontWeight.Medium
                     )
@@ -605,72 +612,56 @@ internal fun CustomTextField(
     bodySize: TextUnit,
     buttonHeight: Dp,
 ) {
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    val textColor = if (value == placeholder) {
-        Color.Gray
-    } else {
-        BodyText
-    }
-
-    LaunchedEffect(isFocused) {
-        if (isFocused && value == placeholder) {
-            onValueChange("")
-        } else if (!isFocused && value.isBlank()) {
-            onValueChange(placeholder)
-        }
-    }
-
     CompositionLocalProvider(
         LocalAutofillHighlightColor provides Color.Transparent
-    ){
-    Column {
-        Text(
-            text = label,
-            color = BodyText,
-            fontSize = bodySize,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            interactionSource = interactionSource,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            shape = FieldShape,
-            isError = error != null,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = FieldTint,
-                unfocusedContainerColor = FieldTint,
-                disabledContainerColor = FieldTint,
-                errorContainerColor = FieldTint,
-
-                focusedTextColor = textColor,
-                unfocusedTextColor = textColor,
-                disabledTextColor = textColor,
-                errorTextColor = textColor,
-
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent,
-
-                cursorColor = BrandBlue,
-                errorCursorColor = BrandBlue
-            ),
-            modifier = modifier
-                .fillMaxWidth()
-                .heightIn(min = buttonHeight)
-        )
-        error?.let {
+    ) {
+        Column {
             Text(
-                text = it,
-                color = Color.Red,
-                fontSize = bodySize * 0.85f,
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                text = label,
+                color = BodyText,
+                fontSize = bodySize,
+                fontWeight = FontWeight.SemiBold
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                singleLine = true,
+                placeholder = {
+                    Text(text = placeholder, color = Color.Gray, fontSize = bodySize)
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                shape = FieldShape,
+                isError = error != null,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = FieldTint,
+                    unfocusedContainerColor = FieldTint,
+                    disabledContainerColor = FieldTint,
+                    errorContainerColor = FieldTint,
+                    focusedTextColor = BodyText,
+                    unfocusedTextColor = BodyText,
+                    disabledTextColor = BodyText,
+                    errorTextColor = BodyText,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent,
+                    cursorColor = BrandBlue,
+                    errorCursorColor = BrandBlue
+                ),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .heightIn(min = buttonHeight)
+            )
+            error?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = bodySize * 0.85f,
+                    modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                )
             }
         }
     }
@@ -688,112 +679,78 @@ internal fun CustomPasswordField(
     buttonHeight: Dp,
 ) {
     var isPasswordVisible by remember { mutableStateOf(false) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    val textColor = if (value == placeholder) {
-        Color.Gray
-    } else {
-        BodyText
-    }
-
-    LaunchedEffect(isFocused) {
-        if (isFocused && value == placeholder) {
-            onValueChange("")
-        } else if (!isFocused && value.isBlank()) {
-            onValueChange(placeholder)
-        }
-    }
-
 
     CompositionLocalProvider(
         LocalAutofillHighlightColor provides Color.Transparent
-    ){
-    Column {
-        Text(
-            text = label,
-            color = BodyText,
-            fontSize = bodySize,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            interactionSource = interactionSource,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password
-            ),
-            visualTransformation = if (isPasswordVisible) {
-                VisualTransformation.None
-            } else {
-                PasswordVisualTransformation(mask = '*')
-            },
-            trailingIcon = {
-                IconButton(
-                    onClick = {
-                        isPasswordVisible = !isPasswordVisible
-                    }
-                ) {
-                    Icon(
-                        imageVector = if (isPasswordVisible) {
-                            Icons.Filled.Visibility
-                        } else {
-                            Icons.Filled.VisibilityOff
-                        },
-                        contentDescription = if (isPasswordVisible) {
-                            "Hide password"
-                        } else {
-                            "Show password"
-                        },
-                        tint = BrandBlue
-                    )
-                }
-            },
-            shape = FieldShape,
-            isError = error != null,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = FieldTint,
-                unfocusedContainerColor = FieldTint,
-                disabledContainerColor = FieldTint,
-                errorContainerColor = FieldTint,
-
-                focusedTextColor = textColor,
-                unfocusedTextColor = textColor,
-                disabledTextColor = textColor,
-                errorTextColor = textColor,
-
-                focusedLabelColor = BodyText,
-                unfocusedLabelColor = BodyText,
-                disabledLabelColor = BodyText,
-                errorLabelColor = BodyText,
-
-                focusedPlaceholderColor = Color.Gray,
-                unfocusedPlaceholderColor = Color.Gray,
-                disabledPlaceholderColor = Color.Gray,
-                errorPlaceholderColor = Color.Gray,
-
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent,
-
-                cursorColor = BrandBlue,
-                errorCursorColor = BrandBlue
-            ),
-            modifier = modifier
-                .fillMaxWidth()
-                .heightIn(min = buttonHeight)
-        )
-
-        error?.let {
+    ) {
+        Column {
             Text(
-                text = it,
-                color = Color.Red,
-                fontSize = bodySize * 0.85f,
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                text = label,
+                color = BodyText,
+                fontSize = bodySize,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                singleLine = true,
+                placeholder = {
+                    Text(text = placeholder, color = Color.Gray, fontSize = bodySize)
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (isPasswordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation(mask = '*')
+                },
+                trailingIcon = {
+                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                        Icon(
+                            imageVector = if (isPasswordVisible) {
+                                Icons.Filled.Visibility
+                            } else {
+                                Icons.Filled.VisibilityOff
+                            },
+                            contentDescription = if (isPasswordVisible) {
+                                "Hide password"
+                            } else {
+                                "Show password"
+                            },
+                            tint = BrandBlue
+                        )
+                    }
+                },
+                shape = FieldShape,
+                isError = error != null,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = FieldTint,
+                    unfocusedContainerColor = FieldTint,
+                    disabledContainerColor = FieldTint,
+                    errorContainerColor = FieldTint,
+                    focusedTextColor = BodyText,
+                    unfocusedTextColor = BodyText,
+                    disabledTextColor = BodyText,
+                    errorTextColor = BodyText,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent,
+                    cursorColor = BrandBlue,
+                    errorCursorColor = BrandBlue
+                ),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .heightIn(min = buttonHeight)
+            )
+            error?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = bodySize * 0.85f,
+                    modifier = Modifier.padding(top = 4.dp, start = 4.dp)
                 )
             }
         }
