@@ -1,8 +1,0 @@
-package com.example.assignment.database
-
-data class Feedback(
-    val rating: Int,
-    val category: String,
-    val message: String,
-    val contactEmail: String?
-)

@@ -41,6 +41,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -65,13 +67,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.assignment.ui.theme.BodyText
+import com.example.assignment.ui.theme.AuthTitleBlue
 import com.example.assignment.ui.theme.BrandBlue
 import com.example.assignment.ui.theme.CardShape
+import com.example.assignment.ui.theme.ErrorRed
 import com.example.assignment.ui.theme.FieldShape
-import com.example.assignment.ui.theme.FieldTint
 import com.example.assignment.ui.theme.LinkBlue
+import com.example.assignment.ui.theme.LogoBorder
 import com.example.assignment.ui.theme.MutedText
+import com.example.assignment.ui.theme.PlaceholderGray
 import com.example.assignment.ui.theme.SurfaceWhite
 import com.example.assignment.ui.utils.ScreenHeight
 
@@ -359,8 +363,8 @@ private fun LoginHeader(
             modifier = Modifier
                 .size(logoSize)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color.White)
-                .border(1.dp, Color(0x45FFFFFF), RoundedCornerShape(24.dp)),
+                .background(SurfaceWhite)
+                .border(1.dp, LogoBorder, RoundedCornerShape(24.dp)),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -401,14 +405,14 @@ private fun HeaderTextBlock(
             text = "Welcome back",
             fontSize = titleSize,
             fontFamily = FontFamily.Serif,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.SemiBold,
             lineHeight = titleSize * 1.05f
         )
         Text(
             text = "Login to continue your work",
             fontSize = 15.sp,
-            color = Color(0xFFD5E5DD),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 22.sp
         )
         Spacer(modifier = Modifier.height(10.dp))
@@ -490,18 +494,21 @@ private fun LoginForm(
         ScreenHeight.ExtraLarge -> 24.sp
     }
 
-    Box(
-        modifier = modifier
-            .wrapContentHeight()
-            .clip(CardShape)
-            .background(SurfaceWhite)
-            .border(width = 1.dp, color = Color(0xFFE8EEE9), shape = CardShape)
-            .padding(cardPadding)
+    Surface(
+        modifier = modifier.wrapContentHeight(),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp
     ) {
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(cardPadding),
+            horizontalAlignment = Alignment.Start
+        ) {
             Text(
                 text = "Login",
-                color = Color(0xFF0B6DB3),
+                color = AuthTitleBlue,
                 fontSize = titleSize,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.SemiBold
@@ -565,7 +572,7 @@ private fun LoginForm(
             uiState.error?.let { error ->
                 Text(
                     text = error,
-                    color = Color.Red,
+                    color = ErrorRed,
                     fontSize = bodySize,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -618,7 +625,7 @@ internal fun CustomTextField(
         Column {
             Text(
                 text = label,
-                color = BodyText,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = bodySize,
                 fontWeight = FontWeight.SemiBold
             )
@@ -628,22 +635,22 @@ internal fun CustomTextField(
                 onValueChange = onValueChange,
                 singleLine = true,
                 placeholder = {
-                    Text(text = placeholder, color = Color.Gray, fontSize = bodySize)
+                    Text(text = placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = bodySize)
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
                 shape = FieldShape,
                 isError = error != null,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = FieldTint,
-                    unfocusedContainerColor = FieldTint,
-                    disabledContainerColor = FieldTint,
-                    errorContainerColor = FieldTint,
-                    focusedTextColor = BodyText,
-                    unfocusedTextColor = BodyText,
-                    disabledTextColor = BodyText,
-                    errorTextColor = BodyText,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    errorTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedPlaceholderColor = PlaceholderGray,
+                    unfocusedPlaceholderColor = PlaceholderGray,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
@@ -658,7 +665,7 @@ internal fun CustomTextField(
             error?.let {
                 Text(
                     text = it,
-                    color = Color.Red,
+                    color = ErrorRed,
                     fontSize = bodySize * 0.85f,
                     modifier = Modifier.padding(top = 4.dp, start = 4.dp)
                 )
@@ -686,7 +693,7 @@ internal fun CustomPasswordField(
         Column {
             Text(
                 text = label,
-                color = BodyText,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = bodySize,
                 fontWeight = FontWeight.SemiBold
             )
@@ -696,7 +703,7 @@ internal fun CustomPasswordField(
                 onValueChange = onValueChange,
                 singleLine = true,
                 placeholder = {
-                    Text(text = placeholder, color = Color.Gray, fontSize = bodySize)
+                    Text(text = placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = bodySize)
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = if (isPasswordVisible) {
@@ -724,16 +731,16 @@ internal fun CustomPasswordField(
                 shape = FieldShape,
                 isError = error != null,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = FieldTint,
-                    unfocusedContainerColor = FieldTint,
-                    disabledContainerColor = FieldTint,
-                    errorContainerColor = FieldTint,
-                    focusedTextColor = BodyText,
-                    unfocusedTextColor = BodyText,
-                    disabledTextColor = BodyText,
-                    errorTextColor = BodyText,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    errorTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedPlaceholderColor = PlaceholderGray,
+                    unfocusedPlaceholderColor = PlaceholderGray,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
@@ -748,7 +755,7 @@ internal fun CustomPasswordField(
             error?.let {
                 Text(
                     text = it,
-                    color = Color.Red,
+                    color = ErrorRed,
                     fontSize = bodySize * 0.85f,
                     modifier = Modifier.padding(top = 4.dp, start = 4.dp)
                 )
@@ -781,13 +788,13 @@ internal fun CustomLoginButton(
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(22.dp),
-                color = Color.White,
+                color = SurfaceWhite,
                 strokeWidth = 2.dp
             )
         } else {
             Text(
                 text = text,
-                color = Color.White,
+                color = SurfaceWhite,
                 fontSize = bodySize,
                 fontWeight = FontWeight.Bold
             )

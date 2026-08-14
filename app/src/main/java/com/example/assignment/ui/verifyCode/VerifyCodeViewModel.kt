@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.assignment.database.SupabaseClientProvider
+import com.example.assignment.database.remote.SupabaseClientProvider
 import com.example.assignment.navigation.PasswordResetMode
 import com.example.assignment.ui.forgotPassword.VerificationCodeCooldown
 import io.github.jan.supabase.auth.OtpType

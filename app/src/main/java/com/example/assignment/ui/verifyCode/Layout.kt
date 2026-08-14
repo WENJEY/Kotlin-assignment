@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +31,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -54,7 +56,7 @@ import com.example.assignment.ui.theme.BluePrimary
 import com.example.assignment.ui.theme.BorderGray
 import com.example.assignment.ui.theme.ErrorRed
 import com.example.assignment.ui.theme.SuccessGreen
-import com.example.assignment.ui.theme.TextDark
+import com.example.assignment.ui.theme.SurfaceWhite
 import com.example.assignment.ui.theme.TextGray
 
 @Composable
@@ -74,25 +76,7 @@ fun CompactLayout(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = horizontalPadding,
-                        top = 28.dp,
-                        end = horizontalPadding
-                    ),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                IconButton(onClick = { onEvent(VerifyCodeEvent.BackClicked) }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
+            VerifyCodeHeader(onBack = { onEvent(VerifyCodeEvent.BackClicked) })
         },
         bottomBar = {
             if (!isKeyboardVisible) {
@@ -109,7 +93,7 @@ fun CompactLayout(
                 ) {
                     Text(
                         text = "Didn't get the code?",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
                     TextButton(
@@ -122,7 +106,7 @@ fun CompactLayout(
                             } else {
                                 "Resend"
                             },
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -149,20 +133,20 @@ fun CompactLayout(
                 modifier = Modifier
                     .size(logoSize)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.12f)),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier
                         .size(logoSize * 0.72f)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.10f)),
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Password,
                         contentDescription = "Verify code",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(logoSize * 0.43f)
                     )
                 }
@@ -174,7 +158,7 @@ fun CompactLayout(
                 text = "Verify Code",
                 fontSize = titleSize,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -184,7 +168,7 @@ fun CompactLayout(
                 fontSize = 16.sp,
                 lineHeight = 23.sp,
                 textAlign = TextAlign.Center,
-                color = Color.White.copy(alpha = 0.95f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -196,7 +180,7 @@ fun CompactLayout(
                         max = if (formMaxWidth == Dp.Unspecified) Dp.Infinity else formMaxWidth
                     ),
                 shape = RoundedCornerShape(28.dp),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp
             ) {
                 Column(
@@ -228,7 +212,7 @@ fun CompactLayout(
                                 text = "Enter verification code",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
@@ -268,8 +252,8 @@ fun CompactLayout(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = BluePrimary,
                                 unfocusedBorderColor = BorderGray,
-                                focusedTextColor = TextDark,
-                                unfocusedTextColor = TextDark,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                                 cursorColor = BluePrimary
                             ),
                             isError = uiState.error != null
@@ -303,7 +287,7 @@ fun CompactLayout(
                         if (uiState.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(22.dp),
-                                color = Color.White,
+                                color = SurfaceWhite,
                                 strokeWidth = 2.5.dp
                             )
                         } else {
@@ -334,6 +318,40 @@ fun CompactLayout(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun VerifyCodeHeader(onBack: () -> Unit) {
+    Surface(
+        color = Color.Transparent,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .height(64.dp)
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            Text(
+                text = "Verify Code",
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }

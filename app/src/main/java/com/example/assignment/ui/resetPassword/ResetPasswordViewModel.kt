@@ -4,7 +4,7 @@ import io.github.jan.supabase.auth.auth
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.assignment.database.SupabaseClientProvider
+import com.example.assignment.database.remote.SupabaseClientProvider
 import com.example.assignment.navigation.PasswordResetMode
 import com.example.assignment.ui.utils.RegisterValidator
 import kotlinx.coroutines.flow.MutableStateFlow

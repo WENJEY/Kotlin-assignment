@@ -19,12 +19,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -43,11 +46,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.LocalAutofillHighlightColor
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Scaffold
@@ -60,7 +62,7 @@ import com.example.assignment.ui.theme.BluePrimary
 import com.example.assignment.ui.theme.BorderGray
 import com.example.assignment.ui.theme.ErrorRed
 import com.example.assignment.ui.theme.SuccessGreen
-import com.example.assignment.ui.theme.TextDark
+import com.example.assignment.ui.theme.SurfaceWhite
 import com.example.assignment.ui.theme.TextGray
 
 @Composable
@@ -108,37 +110,20 @@ internal fun CompactLayout(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Transparent,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = horizontalPadding,
-                        end = horizontalPadding,
-                        top = 28.dp
-                    ),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = {
-                        onEvent(
-                            ResetPasswordEvent.BackToLoginClicked
-                        )
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = if (uiState.isChangePassword) {
-                            "Back to profile"
-                        } else {
-                            "Back to login"
-                        },
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
+            ResetPasswordHeader(
+                title = if (uiState.isChangePassword) {
+                    "Change password"
+                } else {
+                    "Create new password"
+                },
+                onBack = { onEvent(ResetPasswordEvent.BackToLoginClicked) },
+                backContentDescription = if (uiState.isChangePassword) {
+                    "Back to profile"
+                } else {
+                    "Back to login"
                 }
-            }
-    }
+            )
+        }
 
     ) { innerPadding ->
         Box(
@@ -178,34 +163,24 @@ internal fun CompactLayout(
                         .size(adaptiveLogoSize)
                         .clip(CircleShape)
                         .background(
-                            Color.White.copy(alpha = 0.13f)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Lock,
                         contentDescription = "Reset password",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(adaptiveLogoSize * 0.45f)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(headerSpacer))
-                //Title
-                Text(
-                    text = "Create New Password",
-                    color = Color.White,
-                    fontSize = adaptiveTitleSize,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Enter a new password below\n" + "to secure your account.",
-                    color = Color.White.copy(alpha = 0.95f),
+                    text = "New password must be different from last password",
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
                     textAlign = TextAlign.Center
@@ -224,7 +199,8 @@ internal fun CompactLayout(
                         }
                     ),
                     shape = RoundedCornerShape(28.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 8.dp
                 ) {
                     Column(
                         modifier = Modifier
@@ -236,7 +212,7 @@ internal fun CompactLayout(
                     ) { // New Password
                         Text(
                             text = "New Password",
-                            color = TextDark,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -302,8 +278,8 @@ internal fun CompactLayout(
                                     OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = BluePrimary,
                                         unfocusedBorderColor = BorderGray,
-                                        focusedTextColor = TextDark,
-                                        unfocusedTextColor = TextDark,
+                                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                                         cursorColor = BluePrimary
                                     )
                             )
@@ -314,7 +290,7 @@ internal fun CompactLayout(
                         // Confirm Password
                         Text(
                             text = "Confirm Password",
-                            color = TextDark,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -391,8 +367,8 @@ internal fun CompactLayout(
                                     OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = BluePrimary,
                                         unfocusedBorderColor = BorderGray,
-                                        focusedTextColor = TextDark,
-                                        unfocusedTextColor = TextDark,
+                                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                                         cursorColor = BluePrimary
                                     )
                             )
@@ -413,7 +389,7 @@ internal fun CompactLayout(
                         // Password requirement
                         Text(
                             text = "Password requirements",
-                            color = TextDark,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -439,22 +415,23 @@ internal fun CompactLayout(
                                 .fillMaxWidth()
                                 .height(56.dp),
                             enabled = !uiState.isLoading,
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(50),
                             colors =
                                 ButtonDefaults.buttonColors(
                                     containerColor = BluePrimary,
+                                    contentColor = SurfaceWhite,
                                     disabledContainerColor = BluePrimary.copy(alpha = 0.6f)
                                 )
                         ) {
                             if (uiState.isLoading) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(22.dp),
-                                    color = Color.White,
+                                    color = SurfaceWhite,
                                     strokeWidth = 2.5.dp
                                 )
                             } else {
                                 Text(
-                                    text = "Update Password",
+                                    text = "Save password",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -490,7 +467,7 @@ internal fun CompactLayout(
 
                 Text(
                     text = "Remember your password?",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
 
@@ -509,7 +486,7 @@ internal fun CompactLayout(
 
                     Text(
                         text = "Back to login",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -540,7 +517,7 @@ private fun PasswordRequirement(
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint = Color.White,
+                tint = SurfaceWhite,
                 modifier = Modifier.size(14.dp)
             )
         }
@@ -552,5 +529,43 @@ private fun PasswordRequirement(
             color = TextGray,
             fontSize = 14.sp
         )
+    }
+}
+
+@Composable
+private fun ResetPasswordHeader(
+    title: String,
+    onBack: () -> Unit,
+    backContentDescription: String
+) {
+    Surface(
+        color = Color.Transparent,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .height(64.dp)
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = backContentDescription,
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            Text(
+                text = title,
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }

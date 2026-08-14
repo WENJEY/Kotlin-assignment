@@ -5,6 +5,7 @@ sealed class ProfileEvent {
     data object UserProfileClicked : ProfileEvent()
     data object ChangePasswordClicked : ProfileEvent()
     data object FeedbackClicked : ProfileEvent()
+    data object AppearanceClicked : ProfileEvent()
     data object LogoutClicked : ProfileEvent()
     data object NavigationHandled : ProfileEvent()
     data object LogoutConfirmed : ProfileEvent()

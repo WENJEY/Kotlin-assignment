@@ -2,8 +2,8 @@ package com.example.assignment.ui.userProfile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.assignment.database.Repository
-import com.example.assignment.database.SupabaseRepository
+import com.example.assignment.database.remote.Repository
+import com.example.assignment.database.remote.SupabaseRepository
 import com.example.assignment.ui.utils.RegisterValidator
 import com.example.assignment.ui.utils.Result
 import kotlinx.coroutines.flow.MutableStateFlow

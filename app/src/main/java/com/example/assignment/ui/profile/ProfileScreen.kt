@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -20,8 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,6 +31,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.assignment.navigation.ProfileRoutes
 import com.example.assignment.navigation.ScreenRoutes
+import com.example.assignment.ui.theme.DialogScrim
+import com.example.assignment.ui.theme.LogoutRed
+import com.example.assignment.ui.theme.pageBackgroundBrush
 
 @Composable
 fun ProfileScreen(
@@ -135,15 +137,7 @@ private fun ProfileScreenContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF0A4F84),
-                            Color(0xFF1672B8),
-                            Color(0xFF43B7E8)
-                        )
-                    )
-                )
+                .background(pageBackgroundBrush())
         )
 
         when (windowSize) {
@@ -186,34 +180,30 @@ private fun ProfileScreenContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.25f)),
+                .background(DialogScrim),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = Color.White)
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
     }
     if (uiState.showLogoutDialog) {
         AlertDialog(
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             onDismissRequest = { onEvent(ProfileEvent.LogoutCanceled) },
             title = {
-                Text(
-                    "Logout",
-                    color = Color.Black
-                ) },
+                Text("Logout")
+            },
             text = {
-                Text(
-                    "Are you sure you want to log out?",
-                    color = Color.Gray
-                )},
+                Text("Are you sure you want to log out?")
+            },
             confirmButton = {
                 TextButton(onClick = { onEvent(ProfileEvent.LogoutConfirmed) }) {
-                    Text("Logout", color = Color(0xFFFF4D4F))
+                    Text("Logout", color = LogoutRed)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onEvent(ProfileEvent.LogoutCanceled) }) {
-                    Text("Cancel",color = Color.Blue)
+                    Text("Cancel")
                 }
             }
         )

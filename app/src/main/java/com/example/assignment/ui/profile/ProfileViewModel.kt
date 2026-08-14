@@ -2,8 +2,8 @@ package com.example.assignment.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.assignment.database.Repository
-import com.example.assignment.database.SupabaseRepository
+import com.example.assignment.database.remote.Repository
+import com.example.assignment.database.remote.SupabaseRepository
 import com.example.assignment.navigation.PasswordResetMode
 import com.example.assignment.navigation.ProfileRoutes
 import com.example.assignment.navigation.ScreenRoutes
@@ -32,6 +32,7 @@ class ProfileViewModel(
             ProfileEvent.UserProfileClicked -> navigateTo(ProfileRoutes.UserProfile.route)
             ProfileEvent.ChangePasswordClicked -> sendChangePasswordCode()
             ProfileEvent.FeedbackClicked -> navigateTo(ProfileRoutes.Feedback.route)
+            ProfileEvent.AppearanceClicked -> navigateTo(ProfileRoutes.Appearance.route)
             ProfileEvent.LogoutClicked -> {
                 _uiState.update { it.copy(showLogoutDialog = true) }
             }

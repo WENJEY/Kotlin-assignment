@@ -43,6 +43,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -57,7 +58,6 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -65,13 +65,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.assignment.navigation.ScreenRoutes
-
-private val HeaderBlue = Color(0xFF0759BF)
-private val ButtonBlue = Color(0xFF1767CF)
-private val Ink = Color(0xFF13223B)
-private val Muted = Color(0xFF747B86)
-private val Border = Color(0xFFD7DCE3)
-private val PageBackground = Color(0xFFF8FAFD)
+import com.example.assignment.ui.theme.ButtonBlue
+import com.example.assignment.ui.theme.ErrorRed
+import com.example.assignment.ui.theme.FeedbackBorder
+import com.example.assignment.ui.theme.FeedbackIconBackground
+import com.example.assignment.ui.theme.FeedbackIconTint
+import com.example.assignment.ui.theme.FeedbackMuted
+import com.example.assignment.ui.theme.HeaderBlue
+import com.example.assignment.ui.theme.RatingBad
+import com.example.assignment.ui.theme.RatingExcellent
+import com.example.assignment.ui.theme.RatingGood
+import com.example.assignment.ui.theme.RatingLabel
+import com.example.assignment.ui.theme.RatingNeutral
+import com.example.assignment.ui.theme.RatingVeryBad
+import com.example.assignment.ui.theme.SurfaceWhite
 
 private data class RatingOption(
     val value: Int,
@@ -81,11 +88,11 @@ private data class RatingOption(
 )
 
 private val ratings = listOf(
-    RatingOption(1, "☹", "Very Bad", Color(0xFFF46670)),
-    RatingOption(2, "☹", "Bad", Color(0xFFF29A3E)),
-    RatingOption(3, "—", "Neutral", Color(0xFFF4CB43)),
-    RatingOption(4, "☺", "Good", Color(0xFF83C95B)),
-    RatingOption(5, "●", "Excellent", Color(0xFF35AE5B))
+    RatingOption(1, "☹", "Very Bad", RatingVeryBad),
+    RatingOption(2, "☹", "Bad", RatingBad),
+    RatingOption(3, "—", "Neutral", RatingNeutral),
+    RatingOption(4, "☺", "Good", RatingGood),
+    RatingOption(5, "●", "Excellent", RatingExcellent)
 )
 
 @Composable
@@ -100,7 +107,7 @@ fun FeedbackLayout(
         modifier = Modifier
             .fillMaxSize()
             .imePadding(),
-        containerColor = PageBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { FeedbackHeader(onBack = { onEvent(FeedbackEvent.BackClicked) }) },
     ) { innerPadding ->
@@ -135,7 +142,11 @@ fun FeedbackLayout(
 
 @Composable
 private fun FeedbackHeader(onBack: () -> Unit) {
-    Surface(color = HeaderBlue) {
+    Surface(
+        color = Color.Transparent,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -149,13 +160,13 @@ private fun FeedbackHeader(onBack: () -> Unit) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
             Text(
                 text = "Feedback",
                 modifier = Modifier.align(Alignment.Center),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 21.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -168,8 +179,8 @@ private fun WelcomeCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 22.dp),
@@ -178,13 +189,13 @@ private fun WelcomeCard() {
             Box(
                 modifier = Modifier
                     .size(104.dp)
-                    .background(Color(0xFFE6EEFF), RoundedCornerShape(24.dp)),
+                    .background(FeedbackIconBackground, RoundedCornerShape(24.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Chat,
                     contentDescription = null,
-                    tint = Color(0xFF477BD5),
+                    tint = FeedbackIconTint,
                     modifier = Modifier.size(64.dp)
                 )
             }
@@ -192,13 +203,13 @@ private fun WelcomeCard() {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = "We’d love to hear from you!",
-                    color = Ink,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Your feedback helps us improve Malaysia Labour Law Assistant and serve you better.",
-                    color = Ink,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                     lineHeight = 21.sp
                 )
@@ -242,7 +253,7 @@ private fun RatingSection(
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 text = option.face,
-                                color = Color(0xFF263238),
+                                color = RatingLabel,
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -251,7 +262,7 @@ private fun RatingSection(
                     Spacer(Modifier.height(8.dp))
                     Text(
                         text = option.label,
-                        color = Ink,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 11.sp,
                         textAlign = TextAlign.Center
                     )
@@ -275,11 +286,12 @@ private fun CategorySection(
                     .fillMaxWidth()
                     .height(58.dp)
                     .clickable { onEvent(FeedbackEvent.CategoryClicked) },
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(12.dp),
+                shadowElevation = 8.dp,
                 border = androidx.compose.foundation.BorderStroke(
                     1.dp,
-                    if (uiState.categoryError != null) Color(0xFFD32F2F) else Border
+                    if (uiState.categoryError != null) ErrorRed else FeedbackBorder
                 )
             ) {
                 Row(
@@ -291,17 +303,17 @@ private fun CategorySection(
                     Text(
                         text = uiState.category.ifBlank { "Select a category" },
                         modifier = Modifier.weight(1f),
-                        color = if (uiState.category.isBlank()) Muted else Ink,
+                        color = if (uiState.category.isBlank()) FeedbackMuted else MaterialTheme.colorScheme.onSurface,
                         fontSize = 16.sp
                     )
-                    Icon(Icons.Default.ExpandMore, null, tint = Muted)
+                    Icon(Icons.Default.ExpandMore, null, tint = FeedbackMuted)
                 }
             }
             DropdownMenu(
                 expanded = uiState.isCategoryMenuOpen,
                 onDismissRequest = { onEvent(FeedbackEvent.CategoryDismissed) },
                 modifier = Modifier
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .widthIn(min = 280.dp)
             ) {
                 FeedbackUiState.Categories.forEach { category ->
@@ -329,9 +341,9 @@ private fun MessageSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp),
-            placeholder = { Text("Tell us more...", color = Muted) },
-            leadingIcon = {
-                Icon(Icons.Default.RateReview, null, tint = Muted)
+            placeholder = { Text("Tell us more...", color = FeedbackMuted) },
+            prefix = {
+                Icon(Icons.Default.RateReview, null, tint = FeedbackMuted,modifier = Modifier.size(24.dp))
             },
             supportingText = {
                 Text(
@@ -358,14 +370,14 @@ private fun ContactSection(
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row {
             SectionTitle("Contact")
-            Text(" (Optional)", color = Muted, fontSize = 16.sp)
+            Text(" (Optional)", color = FeedbackMuted, fontSize = 16.sp)
         }
         OutlinedTextField(
             value = uiState.contactEmail,
             onValueChange = { onEvent(FeedbackEvent.ContactEmailChanged(it)) },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Enter your email", color = Muted) },
-            leadingIcon = { Icon(Icons.Default.Email, null, tint = Muted) },
+            placeholder = { Text("Enter your email", color = FeedbackMuted) },
+            leadingIcon = { Icon(Icons.Default.Email, null, tint = FeedbackMuted) },
             singleLine = true,
             isError = uiState.emailError != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -393,7 +405,7 @@ private fun SubmitButton(
         if (uiState.isSubmitting) {
             CircularProgressIndicator(
                 modifier = Modifier.size(23.dp),
-                color = Color.White,
+                color = SurfaceWhite,
                 strokeWidth = 2.dp
             )
         } else {
@@ -406,24 +418,24 @@ private fun SubmitButton(
 
 @Composable
 private fun SectionTitle(text: String) {
-    Text(text = text, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+    Text(text = text, color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
 }
 
 @Composable
 private fun FieldError(message: String?) {
     if (message != null) {
-        Text(text = message, color = Color(0xFFD32F2F), fontSize = 12.sp)
+        Text(text = message, color = ErrorRed, fontSize = 12.sp)
     }
 }
 
 @Composable
 private fun feedbackFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
-    errorContainerColor = Color.White,
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    errorContainerColor = MaterialTheme.colorScheme.surface,
     focusedBorderColor = HeaderBlue,
-    unfocusedBorderColor = Border,
-    focusedTextColor = Ink,
-    unfocusedTextColor = Ink
+    unfocusedBorderColor = FeedbackBorder,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
 )
 

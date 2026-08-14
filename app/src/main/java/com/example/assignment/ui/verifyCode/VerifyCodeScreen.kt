@@ -11,9 +11,8 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -23,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.assignment.navigation.PasswordResetMode
 import com.example.assignment.navigation.ScreenRoutes
+import com.example.assignment.ui.theme.pageBackgroundBrush
 
 @Composable
 fun VerifyCodeScreen(
@@ -110,15 +110,7 @@ private fun VerifyCodeContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF0A4F84),
-                            Color(0xFF1672B8),
-                            Color(0xFF43B7E8)
-                        )
-                    )
-                )
+                .background(pageBackgroundBrush())
         )
 
         CompactLayout(

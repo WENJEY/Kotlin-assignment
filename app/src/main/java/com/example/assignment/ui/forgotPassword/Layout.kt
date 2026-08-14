@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -24,11 +25,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -48,18 +52,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.LocalAutofillHighlightColor
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
-import com.example.assignment.ui.theme.BlueDark
 import com.example.assignment.ui.theme.BluePrimary
 import com.example.assignment.ui.theme.BorderGray
 import com.example.assignment.ui.theme.ErrorRed
 import com.example.assignment.ui.theme.SuccessGreen
-import com.example.assignment.ui.theme.TextDark
+import com.example.assignment.ui.theme.SurfaceWhite
 import com.example.assignment.ui.theme.TextGray
 
 @Composable
@@ -81,33 +82,9 @@ fun CompactLayout(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = horizontalPadding,
-                        top = 28.dp,
-                        end = horizontalPadding
-                    ),
-                horizontalArrangement = Arrangement.Start
-            ) {
-
-                IconButton(
-                    onClick = {
-                        onEvent(
-                            ForgotPasswordEvent.BackToLoginClicked
-                        )
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to login",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
+            ForgotPasswordHeader(
+                onBack = { onEvent(ForgotPasswordEvent.BackToLoginClicked) }
+            )
         },
 
         bottomBar = {
@@ -126,7 +103,7 @@ fun CompactLayout(
 
                 Text(
                     text = "Remember your password?",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
 
@@ -140,7 +117,7 @@ fun CompactLayout(
 
                     Text(
                         text = "Back to login",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -174,9 +151,7 @@ fun CompactLayout(
                 modifier = Modifier
                     .size(logoSize)
                     .clip(CircleShape)
-                    .background(
-                        Color.White.copy(alpha = 0.12f)
-                    ),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
 
@@ -184,16 +159,14 @@ fun CompactLayout(
                     modifier = Modifier
                         .size(logoSize * 0.72f)
                         .clip(CircleShape)
-                        .background(
-                            Color.White.copy(alpha = 0.10f)
-                        ),
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
                     contentAlignment = Alignment.Center
                 ) {
 
                     Icon(
                         imageVector = Icons.Default.Lock,
                         contentDescription = "Forgot password",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(
                             logoSize * 0.43f
                         )
@@ -206,7 +179,7 @@ fun CompactLayout(
                 text = "Forgot Password?",
                 fontSize = titleSize,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onBackground
             )
 
 
@@ -218,7 +191,7 @@ fun CompactLayout(
                 fontSize = 16.sp,
                 lineHeight = 23.sp,
                 textAlign = TextAlign.Center,
-                color = Color.White.copy(alpha = 0.95f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
 
@@ -235,7 +208,7 @@ fun CompactLayout(
                         }
                     ),
                 shape = RoundedCornerShape(28.dp),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp
             ) {
 
@@ -342,7 +315,7 @@ private fun FormHeader() {
                 text = "Enter your email address",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -378,7 +351,7 @@ private fun FormButton(
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(22.dp),
-                color = Color.White,
+                color = SurfaceWhite,
                 strokeWidth = 2.5.dp
             )
         } else {
@@ -426,8 +399,44 @@ private fun FormMessage(message: String?) {
 @Composable
 private fun formFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = BluePrimary,
-    unfocusedBorderColor = BorderGray,
-    focusedTextColor = TextDark,
-    unfocusedTextColor = TextDark,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
     cursorColor = BluePrimary
 )
+
+@Composable
+private fun ForgotPasswordHeader(onBack: () -> Unit) {
+    Surface(
+        color = Color.Transparent,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .height(64.dp)
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back to login",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            Text(
+                text = "Forgot Password",
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}

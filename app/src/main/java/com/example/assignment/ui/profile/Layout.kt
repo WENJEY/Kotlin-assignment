@@ -29,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -63,12 +64,12 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.assignment.ui.theme.appNavigationBarColor
 import com.example.assignment.ui.utils.bottomProfileItems
 import com.example.assignment.ui.utils.sideProfileItems
-
-private val LogoutRed = Color(0xFFFF4D4F)
-private val BottomSelected = Color(0xFF0077D9)
-private val BottomUnselected = Color(0xFF8AA0B5)
+import com.example.assignment.ui.theme.LogoutRed
+import com.example.assignment.ui.theme.NavSelected
+import com.example.assignment.ui.theme.NavUnselected
 
 
 // ==================== COMPACT (Phone) ====================
@@ -107,7 +108,7 @@ fun ProfileCompactLayout(
             if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.primary
                 )
                 return@Box
             }
@@ -161,7 +162,7 @@ fun ProfileMediumLayout(
             if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.primary
                 )
                 return@Box
             }
@@ -216,7 +217,7 @@ fun ProfileExpandedLayout(
             if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.primary
                 )
                 return@Box
             }
@@ -303,7 +304,7 @@ private fun ProfileHeader(
     ) {
         Text(
             text = "Profile",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold
         )
@@ -365,7 +366,7 @@ fun ProfileAvatar(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
-                        .border(width = 2.dp, color = Color.White, shape = CircleShape)
+                        .border(width = 2.dp, color = MaterialTheme.colorScheme.primary, shape = CircleShape)
                         .clickable { onEditClick() }
                 )
             }
@@ -374,7 +375,7 @@ fun ProfileAvatar(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(CircleShape)
-                    .border(2.dp, Color.White, CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable(onClick = onEditClick),
                 contentAlignment = Alignment.Center
@@ -398,7 +399,7 @@ fun ProfileAvatar(
             Icon(
                 imageVector = Icons.Default.CameraAlt,
                 contentDescription = "Edit",
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.padding(6.dp)
             )
         }
@@ -416,12 +417,12 @@ private fun ProfileGreeting(
     ) {
         Text(
             text = "Welcome",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.headlineSmall
         )
         Text(
             text = username.ifBlank { "User" },
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -453,6 +454,12 @@ private fun ProfileMenu(
             title = "Feedback",
             onClick = { onEvent(ProfileEvent.FeedbackClicked) },
         )
+        ProfileMenuItem(
+            icon = Icons.Filled.Palette,
+            description = "appearance",
+            title = "Appearance",
+            onClick = { onEvent(ProfileEvent.AppearanceClicked) },
+        )
         if (windowSize == WindowWidthSizeClass.Compact) {
             ProfileMenuItem(
                 icon = Icons.AutoMirrored.Filled.Logout,
@@ -473,9 +480,10 @@ private fun ProfileMenuItem(
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    tint: Color = Color.White,
+    tint: Color? = null,
     fontWeight: FontWeight = FontWeight.Normal
 ) {
+    val contentColor = tint ?: MaterialTheme.colorScheme.onBackground
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -488,7 +496,7 @@ private fun ProfileMenuItem(
             Icon(
                 imageVector = icon,
                 contentDescription = description,
-                tint = tint
+                tint = contentColor
             )
 
             Spacer(modifier = Modifier.width(24.dp))
@@ -496,13 +504,13 @@ private fun ProfileMenuItem(
             Text(
                 text = title,
                 modifier = Modifier.weight(1f),
-                color = tint,
+                color = contentColor,
                 fontWeight = fontWeight,
                 style = MaterialTheme.typography.titleLarge
             )
         }
 
-        HorizontalDivider(color = Color.White.copy(alpha = 0.55f))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
     }
 }
 
@@ -516,7 +524,7 @@ private fun ProfileBottomNavigation(
 ) {
     NavigationBar(
         modifier = modifier,
-        containerColor = Color.White
+        containerColor = appNavigationBarColor()
     ) {
         bottomProfileItems.forEach { item ->
             NavigationBarItem(
@@ -530,11 +538,11 @@ private fun ProfileBottomNavigation(
                 },
                 label = { Text(text = item.iconText) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = BottomSelected,
-                    selectedTextColor = BottomSelected,
-                    indicatorColor = BottomSelected.copy(alpha = 0.12f),
-                    unselectedIconColor = BottomUnselected,
-                    unselectedTextColor = BottomUnselected
+                    selectedIconColor = NavSelected,
+                    selectedTextColor = NavSelected,
+                    indicatorColor = NavSelected.copy(alpha = 0.12f),
+                    unselectedIconColor = NavUnselected,
+                    unselectedTextColor = NavUnselected
                 )
             )
         }
@@ -552,15 +560,19 @@ private fun ProfileNavigationRail(
         modifier = modifier
             .fillMaxHeight()
             .width(if (showLabels) 280.dp else 100.dp)
-            .background(Color.White)
+            .background(appNavigationBarColor())
             .padding(vertical = 32.dp, horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         sideProfileItems.forEach { item ->
             val selected = selectedTab == item.tab
-            val bgColor = if (selected) Color(0xFF0077D9) else Color.Transparent
-            val contentColor = if (selected) Color.White else Color(0xFF5A6B7C)
+            val bgColor = if (selected) NavSelected else Color.Transparent
+            val contentColor = if (selected) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
 
             Row(
                 modifier = Modifier

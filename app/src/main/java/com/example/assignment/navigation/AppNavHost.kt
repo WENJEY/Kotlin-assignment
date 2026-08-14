@@ -11,8 +11,9 @@ import com.example.assignment.ui.login.LoginScreen
 import com.example.assignment.ui.register.RegisterScreen
 import com.example.assignment.ui.profile.ProfileScreen
 import com.example.assignment.ui.userProfile.UserProfileScreen
-import com.example.assignment.database.SupabaseRepository
+import com.example.assignment.database.remote.SupabaseRepository
 import com.example.assignment.navigation.ScreenRoutes.ForgotPassword
+import com.example.assignment.ui.appearance.AppearanceScreen
 import com.example.assignment.ui.feedback.FeedbackScreen
 import com.example.assignment.ui.forgotPassword.ForgotPasswordScreen
 import com.example.assignment.ui.resetPassword.ResetPasswordScreen
@@ -28,7 +29,7 @@ fun MyAppNavHost(
         SupabaseRepository().isLoggedIn() ->
             ScreenRoutes.Profile.route
         else ->
-            ScreenRoutes.Profile.route
+            ScreenRoutes.ResetPassword.route
     }
 
     NavHost(
@@ -68,6 +69,9 @@ fun MyAppNavHost(
         }
         composable(ProfileRoutes.Feedback.route) {
             FeedbackScreen(navController = navController, windowSize = windowSize)
+        }
+        composable(ProfileRoutes.Appearance.route) {
+            AppearanceScreen(navController = navController, windowSize = windowSize)
         }
         composable(ForgotPassword.route){
              ForgotPasswordScreen(navController = navController, windowSize = windowSize)

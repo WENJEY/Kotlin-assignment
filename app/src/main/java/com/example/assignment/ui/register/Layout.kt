@@ -27,7 +27,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,8 +49,11 @@ import com.example.assignment.R
 import com.example.assignment.ui.login.CustomLoginButton
 import com.example.assignment.ui.login.CustomPasswordField
 import com.example.assignment.ui.login.CustomTextField
+import com.example.assignment.ui.theme.AuthTitleBlue
 import com.example.assignment.ui.theme.CardShape
+import com.example.assignment.ui.theme.ErrorRed
 import com.example.assignment.ui.theme.LinkBlue
+import com.example.assignment.ui.theme.LogoBorder
 import com.example.assignment.ui.theme.MutedText
 import com.example.assignment.ui.theme.SurfaceWhite
 import com.example.assignment.ui.utils.ScreenHeight
@@ -116,33 +121,8 @@ internal fun CompactLayout(
 
     Scaffold(
         containerColor = Color.Transparent,
-        modifier = Modifier.statusBarsPadding(),
         topBar = {
-            Row(
-                modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = horizontalPadding,
-                    end = horizontalPadding
-                ),
-                horizontalArrangement = Arrangement.Start)
-            {
-                IconButton(
-                    onClick = {
-                        onEvent(
-                            RegisterEvent.LoginClicked
-                        )
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to login",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
+            RegisterTopBar(onBack = { onEvent(RegisterEvent.LoginClicked) })
         }
     ) { innerPadding ->
 
@@ -232,33 +212,8 @@ internal fun MediumLayout(
     val verticalArrangement = if (centerContent) Arrangement.Center else Arrangement.Top
     Scaffold(
         containerColor = Color.Transparent,
-        modifier = Modifier.statusBarsPadding(),
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = horizontalPadding,
-                        end = horizontalPadding
-                    ),
-                horizontalArrangement = Arrangement.Start)
-            {
-                IconButton(
-                    onClick = {
-                        onEvent(
-                            RegisterEvent.LoginClicked
-                        )
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to login",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
+            RegisterTopBar(onBack = { onEvent(RegisterEvent.LoginClicked) })
         }
     ) { innerPadding ->
 
@@ -331,33 +286,8 @@ internal fun ExpandedLayout(
 
     Scaffold(
         containerColor = Color.Transparent,
-        modifier = Modifier.statusBarsPadding(),
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = horizontalPadding,
-                        end = horizontalPadding
-                    ),
-                horizontalArrangement = Arrangement.Start)
-            {
-                IconButton(
-                    onClick = {
-                        onEvent(
-                            RegisterEvent.LoginClicked
-                        )
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to login",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
+            RegisterTopBar(onBack = { onEvent(RegisterEvent.LoginClicked) })
         }
     ) { innerPadding ->
         Row(
@@ -476,18 +406,21 @@ private fun RegisterForm(
         ScreenHeight.ExtraLarge -> 24.sp
     }
 
-    Box(
-        modifier = modifier
-            .wrapContentHeight()
-            .clip(CardShape)
-            .background(SurfaceWhite)
-            .border(width = 1.dp, color = Color(0xFFE8EEE9), shape = CardShape)
-            .padding(cardPadding)
+    Surface(
+        modifier = modifier.wrapContentHeight(),
+        shape = CardShape,
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp
     ) {
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(cardPadding),
+            horizontalAlignment = Alignment.Start
+        ) {
             Text(
                 text = "Sign Up",
-                color = Color(0xFF0B6DB3),
+                color = AuthTitleBlue,
                 fontSize = titleSize,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.SemiBold
@@ -552,7 +485,7 @@ private fun RegisterForm(
             uiState.error?.let { error ->
                 Text(
                     text = error,
-                    color = Color.Red,
+                    color = ErrorRed,
                     fontSize = bodySize,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -596,8 +529,8 @@ private fun LoginHeader(
             modifier = Modifier
                 .size(logoSize)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color.White)
-                .border(1.dp, Color(0x45FFFFFF), RoundedCornerShape(24.dp)),
+                .background(SurfaceWhite)
+                .border(1.dp, LogoBorder, RoundedCornerShape(24.dp)),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -637,10 +570,44 @@ private fun HeaderTextBlock(
             text = "Sign Up",
             fontSize = titleSize,
             fontFamily = FontFamily.Serif,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.SemiBold,
             lineHeight = titleSize * 1.05f
         )
         Spacer(modifier = Modifier.height(10.dp))
+    }
+}
+
+@Composable
+private fun RegisterTopBar(onBack: () -> Unit) {
+    Surface(
+        color = Color.Transparent,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .height(64.dp)
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back to login",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            Text(
+                text = "Sign Up",
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }

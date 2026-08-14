@@ -3,7 +3,7 @@ package com.example.assignment.ui.forgotPassword
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.assignment.database.SupabaseClientProvider
+import com.example.assignment.database.remote.SupabaseClientProvider
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Job
