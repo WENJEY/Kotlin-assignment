@@ -13,10 +13,13 @@ import com.example.assignment.ui.profile.ProfileScreen
 import com.example.assignment.ui.userProfile.UserProfileScreen
 import com.example.assignment.database.remote.SupabaseRepository
 import com.example.assignment.navigation.ScreenRoutes.ForgotPassword
+import com.example.assignment.ui.aiChatBox.AiChatBoxScreen
 import com.example.assignment.ui.appearance.AppearanceScreen
 import com.example.assignment.ui.feedback.FeedbackScreen
 import com.example.assignment.ui.forgotPassword.ForgotPasswordScreen
+import com.example.assignment.ui.home.HomeScreen
 import com.example.assignment.ui.resetPassword.ResetPasswordScreen
+import com.example.assignment.ui.scanner.ScannerScreen
 import com.example.assignment.ui.verifyCode.VerifyCodeScreen
 
 @Composable
@@ -42,26 +45,16 @@ fun MyAppNavHost(
         composable(ScreenRoutes.Register.route) {
              RegisterScreen(navController = navController, windowSize = windowSize)
         }
-        /**composable(ScreenRoutes.Home.route) {
-            HomeScreen(
-                navController = navController,
-                selectedRoute = ScreenRoutes.Home.route
-            )
+        composable(ScreenRoutes.Home.route) {
+            HomeScreen(navController = navController, windowSize = windowSize)
         }
-        composable(ScreenRoutes.Scanner.route){
-            ScannerScreen(
-                navController = navController,
-                selectedRoute = ScreenRoutes.Scanner.route
-            )
+        composable(ScreenRoutes.Scanner.route) {
+            ScannerScreen(navController = navController, windowSize = windowSize)
         }
         composable(ScreenRoutes.ChatBox.route) {
-            ChatBoxScreen(
-                navController = navController,
-                selectedRoute = ScreenRoutes.ChatBox.route
-            )
+            AiChatBoxScreen(navController = navController, windowSize = windowSize)
         }
-        **/
-        composable(ScreenRoutes.Profile.route){
+        composable(ScreenRoutes.Profile.route) {
              ProfileScreen(navController = navController, windowSize = windowSize)
         }
         composable(ProfileRoutes.UserProfile.route) {
