@@ -1,13 +1,16 @@
 services:
   - type: web
-    name: kotlin-assignment-chat
-    runtime: docker
+    name: kotlin-assignment
+    runtime: python
     plan: free
     region: oregon
     rootDir: backend
-    dockerfilePath: ./Dockerfile
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1
     healthCheckPath: /health
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
       - key: OPENAI_API_KEY
         sync: false
       - key: QDRANT_URL
