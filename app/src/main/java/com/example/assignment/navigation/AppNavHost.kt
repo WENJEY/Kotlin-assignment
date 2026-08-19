@@ -13,7 +13,7 @@ import com.example.assignment.ui.profile.ProfileScreen
 import com.example.assignment.ui.userProfile.UserProfileScreen
 import com.example.assignment.database.remote.SupabaseRepository
 import com.example.assignment.navigation.ScreenRoutes.ForgotPassword
-import com.example.assignment.ui.aiChatBox.AiChatBoxScreen
+import com.example.assignment.ui.ChatBox.AiChatBoxScreen
 import com.example.assignment.ui.appearance.AppearanceScreen
 import com.example.assignment.ui.feedback.FeedbackScreen
 import com.example.assignment.ui.forgotPassword.ForgotPasswordScreen
@@ -32,7 +32,7 @@ fun MyAppNavHost(
         SupabaseRepository().isLoggedIn() ->
             ScreenRoutes.Profile.route
         else ->
-            ScreenRoutes.ResetPassword.route
+            ScreenRoutes.Login.route
     }
 
     NavHost(

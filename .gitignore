@@ -14,3 +14,16 @@ app/src/main/java/com/example/assignment/database/SupabaseSecrets.kt
 .externalNativeBuild
 .cxx
 local.properties
+
+# Flask legal-bot backend
+backend/.env
+backend/venv/
+backend/.venv/
+backend/__pycache__/
+*.pyc
+backend/flask.log
+backend/flask.err.log
+backend/ngrok.log
+backend/ngrok.err.log
+backend/chat-servers.pid
+backend/unanswered.jsonl

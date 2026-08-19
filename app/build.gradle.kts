@@ -83,8 +83,10 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.github.jan-tennert.supabase:functions-kt")
 
-    // Ktor (required by Supabase)
+    // Ktor (required by Supabase and ChatBox)
     implementation("io.ktor:ktor-client-android:3.2.0")
+    implementation("io.ktor:ktor-client-content-negotiation:3.2.0")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.2.0")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.11.0")

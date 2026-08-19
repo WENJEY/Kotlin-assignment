@@ -21,4 +21,12 @@ interface Repository {
         gender: String
     ): Result<Unit>
     suspend fun submitFeedback(feedback: Feedback): Result<Unit>
+    suspend fun loadChatConversations(): Result<List<ChatConversation>>
+    suspend fun createChatConversation(title: String): Result<ChatConversation>
+    suspend fun loadChatHistory(conversationId: String): Result<List<ChatHistoryMessage>>
+    suspend fun saveChatMessage(
+        conversationId: String,
+        text: String,
+        isFromUser: Boolean
+    ): Result<Unit>
 }

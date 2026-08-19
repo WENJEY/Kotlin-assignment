@@ -7,6 +7,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.storage
 import io.ktor.http.ContentType
 import kotlinx.serialization.SerialName
@@ -303,6 +304,113 @@ class SupabaseRepository : Repository {
         }
     )
 
+    override suspend fun loadChatConversations(): Result<List<ChatConversation>> = runCatching {
+        val user = client.auth.currentUserOrNull() ?: error("Not logged in")
+        client.from("chat_conversations").select {
+            filter { eq("user_id", user.id) }
+            order("updated_at", Order.DESCENDING)
+        }.decodeList<ConversationRow>().map { row ->
+            ChatConversation(id = row.id, title = row.title)
+        }
+    }.fold(
+        onSuccess = { Result.Success(it) },
+        onFailure = { exception ->
+            Log.e("SupabaseRepository", "Load chat conversations failed", exception)
+            Result.Error(chatHistoryError("load", exception))
+        }
+    )
+
+    override suspend fun createChatConversation(title: String): Result<ChatConversation> = runCatching {
+        val user = client.auth.currentUserOrNull() ?: error("Not logged in")
+        val conversation = ChatConversation(
+            id = java.util.UUID.randomUUID().toString(),
+            title = title.trim().ifBlank { "New chat" }.take(60)
+        )
+        client.from("chat_conversations").insert(
+            ConversationInsert(
+                id = conversation.id,
+                userId = user.id,
+                title = conversation.title
+            )
+        )
+        conversation
+    }.fold(
+        onSuccess = { Result.Success(it) },
+        onFailure = { exception ->
+            Log.e("SupabaseRepository", "Create chat conversation failed", exception)
+            Result.Error(chatHistoryError("save", exception))
+        }
+    )
+
+    override suspend fun loadChatHistory(conversationId: String): Result<List<ChatHistoryMessage>> = runCatching {
+        val user = client.auth.currentUserOrNull() ?: error("Not logged in")
+        client.from("chat_messages").select {
+            filter {
+                eq("user_id", user.id)
+                eq("conversation_id", conversationId)
+            }
+            order("created_at", Order.ASCENDING)
+        }.decodeList<ChatMessageRow>().map { row ->
+            ChatHistoryMessage(
+                id = row.id,
+                text = row.text,
+                isFromUser = row.isFromUser
+            )
+        }
+    }.fold(
+        onSuccess = { Result.Success(it) },
+        onFailure = { exception ->
+            Log.e("SupabaseRepository", "Load chat history failed", exception)
+            Result.Error(chatHistoryError("load", exception))
+        }
+    )
+
+    override suspend fun saveChatMessage(
+        conversationId: String,
+        text: String,
+        isFromUser: Boolean
+    ): Result<Unit> = runCatching {
+        val user = client.auth.currentUserOrNull() ?: error("Not logged in")
+        client.from("chat_messages").insert(
+            ChatMessageInsert(
+                userId = user.id,
+                conversationId = conversationId,
+                text = text,
+                isFromUser = isFromUser
+            )
+        )
+        client.from("chat_conversations").update(
+            ConversationTouch(updatedAt = java.time.Instant.now().toString())
+        ) {
+            filter { eq("id", conversationId) }
+        }
+    }.fold(
+        onSuccess = { Result.Success(Unit) },
+        onFailure = { exception ->
+            Log.e("SupabaseRepository", "Save chat message failed", exception)
+            Result.Error(chatHistoryError("save", exception))
+        }
+    )
+
+    private fun chatHistoryError(action: String, exception: Throwable): String {
+        val detail = exception.message.orEmpty()
+        return when {
+            detail.contains("Not logged in", ignoreCase = true) ->
+                "Sign in to save and view chat history."
+            detail.contains("relation", ignoreCase = true) &&
+                (detail.contains("chat_messages", ignoreCase = true) ||
+                    detail.contains("chat_conversations", ignoreCase = true)) ->
+                "Chat history is not ready. Run supabase/chat_messages_setup.sql."
+            detail.contains("conversation_id", ignoreCase = true) ->
+                "Chat history is not ready. Run supabase/chat_messages_setup.sql."
+            detail.contains("row-level security", ignoreCase = true) ||
+                detail.contains("permission denied", ignoreCase = true) ||
+                detail.contains("42501") ->
+                "Permission denied. Run supabase/chat_messages_setup.sql."
+            else -> "Unable to $action chat history."
+        }
+    }
+
     private fun profileImageError(action: String, exception: Throwable): String {
         val detail = exception.message.orEmpty()
         return when {
@@ -364,4 +472,42 @@ private data class FeedbackInsert(
     val category: String,
     val message: String,
     @SerialName("contact_email") val contactEmail: String? = null
+)
+
+@Serializable
+private data class ChatMessageRow(
+    val id: String,
+    @SerialName("user_id") val userId: String? = null,
+    @SerialName("conversation_id") val conversationId: String? = null,
+    val text: String,
+    @SerialName("is_from_user") val isFromUser: Boolean,
+    @SerialName("created_at") val createdAt: String? = null
+)
+
+@Serializable
+private data class ChatMessageInsert(
+    @SerialName("user_id") val userId: String,
+    @SerialName("conversation_id") val conversationId: String,
+    val text: String,
+    @SerialName("is_from_user") val isFromUser: Boolean
+)
+
+@Serializable
+private data class ConversationRow(
+    val id: String,
+    @SerialName("user_id") val userId: String? = null,
+    val title: String = "New chat",
+    @SerialName("updated_at") val updatedAt: String? = null
+)
+
+@Serializable
+private data class ConversationInsert(
+    val id: String,
+    @SerialName("user_id") val userId: String,
+    val title: String
+)
+
+@Serializable
+private data class ConversationTouch(
+    @SerialName("updated_at") val updatedAt: String
 )
