@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.assignment.navigation.ScreenRoutes
+import com.example.assignment.navigation.navigateToLoginAndClear
 import com.example.assignment.ui.theme.DialogScrim
 import com.example.assignment.ui.theme.LogoutRed
 import com.example.assignment.ui.theme.pageBackgroundBrush
@@ -58,14 +59,7 @@ fun ProfileScreen(
     LaunchedEffect(uiState.navigateTo) {
         uiState.navigateTo?.let { route ->
             when (route) {
-                ScreenRoutes.Login.route -> {
-                    navController.navigate(route) {
-                        popUpTo(ScreenRoutes.Profile.route) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-                    }
-                }
+                ScreenRoutes.Login.route -> navController.navigateToLoginAndClear()
 
                 ScreenRoutes.Home.route,
                 ScreenRoutes.Scanner.route,
@@ -191,26 +185,33 @@ private fun ProfileScreenContent(
         }
     }
     if (uiState.showLogoutDialog) {
-        AlertDialog(
-            containerColor = MaterialTheme.colorScheme.surface,
-            onDismissRequest = { onEvent(ProfileEvent.LogoutCanceled) },
-            title = {
-                Text("Logout")
-            },
-            text = {
-                Text("Are you sure you want to log out?")
-            },
-            confirmButton = {
-                TextButton(onClick = { onEvent(ProfileEvent.LogoutConfirmed) }) {
-                    Text("Logout", color = LogoutRed)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { onEvent(ProfileEvent.LogoutCanceled) }) {
-                    Text("Cancel")
-                }
-            }
+        LogoutConfirmDialog(
+            onConfirm = { onEvent(ProfileEvent.LogoutConfirmed) },
+            onDismiss = { onEvent(ProfileEvent.LogoutCanceled) }
         )
     }
     }
+}
+
+@Composable
+fun LogoutConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface,
+        onDismissRequest = onDismiss,
+        title = { Text("Logout") },
+        text = { Text("Are you sure you want to log out?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Logout", color = LogoutRed)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

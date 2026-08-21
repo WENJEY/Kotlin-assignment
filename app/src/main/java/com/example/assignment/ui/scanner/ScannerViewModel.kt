@@ -8,6 +8,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.assignment.database.remote.scanner.ScannerRepository
 import com.example.assignment.database.remote.ChatBox.ChatRepository
+import com.example.assignment.database.remote.Repository
+import com.example.assignment.database.remote.supabase.SupabaseRepository
 import com.example.assignment.navigation.PendingScreenAction
 import com.example.assignment.navigation.ScreenRoutes
 import com.example.assignment.ui.profile.ProfileTab
@@ -24,6 +26,7 @@ class ScannerViewModel(
 ) : AndroidViewModel(application) {
     private val repository = ScannerRepository(application)
     private val chatRepository = ChatRepository()
+    private val authRepository: Repository = SupabaseRepository()
     private var observingDocuments = false
     private val _uiState = MutableStateFlow(
         ScannerUiState(greeting = greetingForHour())
@@ -65,6 +68,8 @@ class ScannerViewModel(
             ScannerEvent.CameraPermissionDenied -> showMessage("Camera permission is needed to scan documents.")
             ScannerEvent.ShareHandled -> _uiState.update { it.copy(shareRequest = null) }
             is ScannerEvent.TabSelected -> selectTab(event.tab)
+            ScannerEvent.LogoutConfirmed -> confirmLogout()
+            ScannerEvent.LogoutCanceled -> _uiState.update { it.copy(showLogoutDialog = false) }
             ScannerEvent.NavigationHandled -> _uiState.update { it.copy(navigateTo = null) }
             ScannerEvent.MessageShown -> _uiState.update { it.copy(message = null) }
         }
@@ -350,7 +355,11 @@ class ScannerViewModel(
     }
 
     private fun selectTab(tab: ProfileTab) {
-        if (tab == ProfileTab.Scanner || tab == ProfileTab.Logout) return
+        if (tab == ProfileTab.Scanner) return
+        if (tab == ProfileTab.Logout) {
+            _uiState.update { it.copy(showLogoutDialog = true) }
+            return
+        }
 
         val route = when (tab) {
             ProfileTab.Home -> ScreenRoutes.Home.route
@@ -364,6 +373,14 @@ class ScannerViewModel(
                 selectedTab = tab,
                 navigateTo = route
             )
+        }
+    }
+
+    private fun confirmLogout() {
+        _uiState.update { it.copy(showLogoutDialog = false) }
+        viewModelScope.launch {
+            authRepository.logout()
+            _uiState.update { it.copy(navigateTo = ScreenRoutes.Login.route) }
         }
     }
 

@@ -15,6 +15,7 @@ data class HomeUiState(
     val recentChats: List<HomeRecentChat> = emptyList(),
     val isLoading: Boolean = false,
     val selectedTab: ProfileTab = ProfileTab.Home,
+    val showLogoutDialog: Boolean = false,
     val navigateTo: String? = null,
     val message: String? = null
 )

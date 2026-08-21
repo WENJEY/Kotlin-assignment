@@ -1,6 +1,7 @@
 package com.example.assignment.navigation
 
 import android.net.Uri
+import androidx.navigation.NavController
 
 sealed class ScreenRoutes(val route: String) {
     data object Login : ScreenRoutes("login")
@@ -28,4 +29,11 @@ sealed class ScreenRoutes(val route: String) {
 object PasswordResetMode {
     const val Forgot = "forgot"
     const val Change = "change"
+}
+
+fun NavController.navigateToLoginAndClear() {
+    navigate(ScreenRoutes.Login.route) {
+        popUpTo(graph.id) { inclusive = true }
+        launchSingleTop = true
+    }
 }

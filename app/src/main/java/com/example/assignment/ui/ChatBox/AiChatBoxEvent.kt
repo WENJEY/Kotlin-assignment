@@ -11,6 +11,8 @@ sealed class AiChatBoxEvent {
     data object HistoryDismissed : AiChatBoxEvent()
     data class ConversationSelected(val conversationId: String) : AiChatBoxEvent()
     data class TabSelected(val tab: ProfileTab) : AiChatBoxEvent()
+    data object LogoutConfirmed : AiChatBoxEvent()
+    data object LogoutCanceled : AiChatBoxEvent()
     data object NavigationHandled : AiChatBoxEvent()
     data object MessageShown : AiChatBoxEvent()
 }

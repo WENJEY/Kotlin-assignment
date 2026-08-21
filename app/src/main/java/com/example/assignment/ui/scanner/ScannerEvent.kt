@@ -28,6 +28,8 @@ sealed class ScannerEvent {
     data object CameraPermissionDenied : ScannerEvent()
     data object ShareHandled : ScannerEvent()
     data class TabSelected(val tab: ProfileTab) : ScannerEvent()
+    data object LogoutConfirmed : ScannerEvent()
+    data object LogoutCanceled : ScannerEvent()
     data object NavigationHandled : ScannerEvent()
     data object MessageShown : ScannerEvent()
 }

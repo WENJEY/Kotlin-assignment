@@ -36,6 +36,8 @@ class AiChatBoxViewModel(
             AiChatBoxEvent.HistoryDismissed -> _uiState.update { it.copy(isHistoryOpen = false) }
             is AiChatBoxEvent.ConversationSelected -> openConversation(event.conversationId)
             is AiChatBoxEvent.TabSelected -> selectTab(event.tab)
+            AiChatBoxEvent.LogoutConfirmed -> confirmLogout()
+            AiChatBoxEvent.LogoutCanceled -> _uiState.update { it.copy(showLogoutDialog = false) }
             AiChatBoxEvent.NavigationHandled -> _uiState.update { it.copy(navigateTo = null) }
             AiChatBoxEvent.MessageShown -> _uiState.update { it.copy(message = null) }
         }
@@ -241,7 +243,11 @@ class AiChatBoxViewModel(
     }
 
     private fun selectTab(tab: ProfileTab) {
-        if (tab == ProfileTab.ChatBox || tab == ProfileTab.Logout) return
+        if (tab == ProfileTab.ChatBox) return
+        if (tab == ProfileTab.Logout) {
+            _uiState.update { it.copy(showLogoutDialog = true) }
+            return
+        }
 
         val route = when (tab) {
             ProfileTab.Home -> ScreenRoutes.Home.route
@@ -255,6 +261,14 @@ class AiChatBoxViewModel(
                 selectedTab = tab,
                 navigateTo = route
             )
+        }
+    }
+
+    private fun confirmLogout() {
+        _uiState.update { it.copy(showLogoutDialog = false) }
+        viewModelScope.launch {
+            historyRepository.logout()
+            _uiState.update { it.copy(navigateTo = ScreenRoutes.Login.route) }
         }
     }
 

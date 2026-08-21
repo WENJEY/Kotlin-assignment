@@ -21,6 +21,7 @@ data class AiChatBoxUiState(
     val isLoadingHistory: Boolean = false,
     val isHistoryOpen: Boolean = false,
     val selectedTab: ProfileTab = ProfileTab.ChatBox,
+    val showLogoutDialog: Boolean = false,
     val navigateTo: String? = null,
     val message: String? = null
 )

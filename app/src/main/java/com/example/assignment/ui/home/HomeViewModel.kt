@@ -34,6 +34,8 @@ class HomeViewModel(
             is HomeEvent.ConversationClicked -> openConversation(event.conversationId)
             HomeEvent.ProfileClicked -> navigateTo(ScreenRoutes.Profile.route)
             is HomeEvent.TabSelected -> selectTab(event.tab)
+            HomeEvent.LogoutConfirmed -> confirmLogout()
+            HomeEvent.LogoutCanceled -> _uiState.update { it.copy(showLogoutDialog = false) }
             HomeEvent.NavigationHandled -> _uiState.update { it.copy(navigateTo = null) }
             HomeEvent.MessageShown -> _uiState.update { it.copy(message = null) }
         }
@@ -107,7 +109,11 @@ class HomeViewModel(
     }
 
     private fun selectTab(tab: ProfileTab) {
-        if (tab == ProfileTab.Home || tab == ProfileTab.Logout) return
+        if (tab == ProfileTab.Home) return
+        if (tab == ProfileTab.Logout) {
+            _uiState.update { it.copy(showLogoutDialog = true) }
+            return
+        }
 
         val route = when (tab) {
             ProfileTab.Scanner -> ScreenRoutes.Scanner.route
@@ -121,6 +127,14 @@ class HomeViewModel(
                 selectedTab = tab,
                 navigateTo = route
             )
+        }
+    }
+
+    private fun confirmLogout() {
+        _uiState.update { it.copy(showLogoutDialog = false) }
+        viewModelScope.launch {
+            repository.logout()
+            navigateTo(ScreenRoutes.Login.route)
         }
     }
 

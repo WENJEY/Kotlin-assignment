@@ -7,16 +7,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.assignment.navigation.ScreenRoutes
+import com.example.assignment.navigation.navigateToLoginAndClear
+import com.example.assignment.ui.profile.LogoutConfirmDialog
 
 @Composable
 fun AiChatBoxScreen(
     navController: NavController,
     windowSize: WindowWidthSizeClass,
     viewModel: AiChatBoxViewModel = viewModel(
-        viewModelStoreOwner = checkNotNull(LocalActivity.current)
+        viewModelStoreOwner = checkNotNull(LocalActivity.current) as ViewModelStoreOwner
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -28,11 +32,15 @@ fun AiChatBoxScreen(
 
     LaunchedEffect(uiState.navigateTo) {
         uiState.navigateTo?.let { route ->
-            val currentRoute = navController.currentDestination?.route
-            navController.navigate(route) {
-                launchSingleTop = true
-                if (currentRoute != null) {
-                    popUpTo(currentRoute) { inclusive = true }
+            if (route == ScreenRoutes.Login.route) {
+                navController.navigateToLoginAndClear()
+            } else {
+                val currentRoute = navController.currentDestination?.route
+                navController.navigate(route) {
+                    launchSingleTop = true
+                    if (currentRoute != null) {
+                        popUpTo(currentRoute) { inclusive = true }
+                    }
                 }
             }
             viewModel.onEvent(AiChatBoxEvent.NavigationHandled)
@@ -52,4 +60,11 @@ fun AiChatBoxScreen(
         snackbarHostState = snackbarHostState,
         onEvent = viewModel::onEvent
     )
+
+    if (uiState.showLogoutDialog) {
+        LogoutConfirmDialog(
+            onConfirm = { viewModel.onEvent(AiChatBoxEvent.LogoutConfirmed) },
+            onDismiss = { viewModel.onEvent(AiChatBoxEvent.LogoutCanceled) }
+        )
+    }
 }

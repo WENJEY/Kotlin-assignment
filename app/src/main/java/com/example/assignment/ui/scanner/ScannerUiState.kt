@@ -108,6 +108,7 @@ data class ScannerUiState(
     val isProcessing: Boolean = false,
     val processingMessage: String = "Reading document...",
     val selectedTab: ProfileTab = ProfileTab.Scanner,
+    val showLogoutDialog: Boolean = false,
     val navigateTo: String? = null,
     val message: String? = null
 ) {

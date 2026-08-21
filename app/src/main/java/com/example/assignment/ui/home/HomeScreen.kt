@@ -17,6 +17,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.assignment.navigation.ScreenRoutes
+import com.example.assignment.navigation.navigateToLoginAndClear
+import com.example.assignment.ui.profile.LogoutConfirmDialog
 import com.example.assignment.ui.theme.pageBackgroundBrush
 
 @Composable
@@ -41,11 +44,15 @@ fun HomeScreen(
 
     LaunchedEffect(uiState.navigateTo) {
         uiState.navigateTo?.let { route ->
-            val currentRoute = navController.currentDestination?.route
-            navController.navigate(route) {
-                launchSingleTop = true
-                if (currentRoute != null) {
-                    popUpTo(currentRoute) { inclusive = true }
+            if (route == ScreenRoutes.Login.route) {
+                navController.navigateToLoginAndClear()
+            } else {
+                val currentRoute = navController.currentDestination?.route
+                navController.navigate(route) {
+                    launchSingleTop = true
+                    if (currentRoute != null) {
+                        popUpTo(currentRoute) { inclusive = true }
+                    }
                 }
             }
             viewModel.onEvent(HomeEvent.NavigationHandled)
@@ -70,5 +77,11 @@ fun HomeScreen(
             snackbarHostState = snackbarHostState,
             onEvent = viewModel::onEvent
         )
+        if (uiState.showLogoutDialog) {
+            LogoutConfirmDialog(
+                onConfirm = { viewModel.onEvent(HomeEvent.LogoutConfirmed) },
+                onDismiss = { viewModel.onEvent(HomeEvent.LogoutCanceled) }
+            )
+        }
     }
 }

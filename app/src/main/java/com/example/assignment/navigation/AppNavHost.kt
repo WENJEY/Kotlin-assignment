@@ -32,7 +32,7 @@ fun MyAppNavHost(
         SupabaseRepository().isLoggedIn() ->
             ScreenRoutes.Home.route
         else ->
-            ScreenRoutes.Profile.route
+            ScreenRoutes.Login.route
     }
 
     NavHost(

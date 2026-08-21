@@ -12,6 +12,8 @@ sealed class HomeEvent {
     data class ConversationClicked(val conversationId: String) : HomeEvent()
     data object ProfileClicked : HomeEvent()
     data class TabSelected(val tab: ProfileTab) : HomeEvent()
+    data object LogoutConfirmed : HomeEvent()
+    data object LogoutCanceled : HomeEvent()
     data object NavigationHandled : HomeEvent()
     data object MessageShown : HomeEvent()
 }
