@@ -3,7 +3,7 @@ package com.example.assignment.ui.register
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.assignment.database.remote.Repository
-import com.example.assignment.database.remote.SupabaseRepository
+import com.example.assignment.database.remote.supabase.SupabaseRepository
 import com.example.assignment.navigation.ScreenRoutes
 import com.example.assignment.ui.utils.RegisterValidator.validateConfirmPassword
 import com.example.assignment.ui.utils.RegisterValidator.validateEmail

@@ -1,5 +1,6 @@
 package com.example.assignment.ui.scanner
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,8 +29,10 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -42,6 +45,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,27 +60,37 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.example.assignment.ui.profile.ProfileTab
+import com.example.assignment.ui.theme.BorderGray
+import com.example.assignment.ui.theme.ErrorRed
 import com.example.assignment.ui.theme.LogoutRed
 import com.example.assignment.ui.theme.NavSelected
 import com.example.assignment.ui.theme.NavUnselected
+import com.example.assignment.ui.theme.ScannerHeroDocument
+import com.example.assignment.ui.theme.ScannerHeroPlatform
+import com.example.assignment.ui.theme.ScannerHistoryGreen
+import com.example.assignment.ui.theme.ScannerImageBadge
+import com.example.assignment.ui.theme.ScannerImportPurple
+import com.example.assignment.ui.theme.ScannerOverlayScrim
+import com.example.assignment.ui.theme.ScannerPdfRed
+import com.example.assignment.ui.theme.ScannerScanBlue
+import com.example.assignment.ui.theme.SuccessGreen
+import com.example.assignment.ui.theme.SurfaceWhite
 import com.example.assignment.ui.theme.appNavigationBarColor
 import com.example.assignment.ui.utils.bottomProfileItems
 import com.example.assignment.ui.utils.sideProfileItems
+import java.io.File
 
-private val ScanBlue = Color(0xFF2F80ED)
-private val ImportPurple = Color(0xFF7B61FF)
-private val HistoryGreen = Color(0xFF27AE60)
-private val PdfRed = Color(0xFFE53935)
-private val ImageBadge = Color(0xFF5B8DEF)
-private val PaperLine = Color(0xFFD9E1EA)
-private val HeroDocument = Color(0xFFF7FBFF)
-private val HeroPlatform = Color(0xFF8B7CFF)
 private val HeroCardShape = RoundedCornerShape(28.dp)
 private val ActionCardShape = RoundedCornerShape(22.dp)
 private val DocumentCardShape = RoundedCornerShape(18.dp)
@@ -88,24 +102,52 @@ fun ScannerLayout(
     snackbarHostState: SnackbarHostState,
     onEvent: (ScannerEvent) -> Unit
 ) {
-    when (windowSize) {
-        WindowWidthSizeClass.Compact -> ScannerCompactLayout(
-            uiState = uiState,
-            snackbarHostState = snackbarHostState,
-            onEvent = onEvent
-        )
-        WindowWidthSizeClass.Medium -> ScannerRailLayout(
-            uiState = uiState,
-            snackbarHostState = snackbarHostState,
-            onEvent = onEvent,
-            showLabels = false
-        )
-        else -> ScannerRailLayout(
-            uiState = uiState,
-            snackbarHostState = snackbarHostState,
-            onEvent = onEvent,
-            showLabels = true
-        )
+    BackHandler(enabled = uiState.destination != ScannerPage.Home) {
+        onEvent(ScannerEvent.BackClicked)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (windowSize) {
+            WindowWidthSizeClass.Compact -> ScannerCompactLayout(
+                uiState = uiState,
+                snackbarHostState = snackbarHostState,
+                onEvent = onEvent
+            )
+            WindowWidthSizeClass.Medium -> ScannerRailLayout(
+                uiState = uiState,
+                snackbarHostState = snackbarHostState,
+                onEvent = onEvent,
+                showLabels = false
+            )
+            else -> ScannerRailLayout(
+                uiState = uiState,
+                snackbarHostState = snackbarHostState,
+                onEvent = onEvent,
+                showLabels = true
+            )
+        }
+
+        if (uiState.isProcessing) {
+            ProcessingOverlay(message = uiState.processingMessage)
+        }
+
+        if (uiState.confirmDeleteId != null) {
+            AlertDialog(
+                onDismissRequest = { onEvent(ScannerEvent.DeleteCanceled) },
+                title = { Text("Delete document?") },
+                text = { Text("This removes the file and its extracted text from this device.") },
+                confirmButton = {
+                    TextButton(onClick = { onEvent(ScannerEvent.DeleteConfirmed) }) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { onEvent(ScannerEvent.DeleteCanceled) }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -184,6 +226,42 @@ private fun ScannerContent(
     onEvent: (ScannerEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    when (uiState.destination) {
+        ScannerPage.History -> ScannerHistoryContent(
+            uiState = uiState,
+            onEvent = onEvent,
+            modifier = modifier
+        )
+        ScannerPage.Detail -> {
+            val document = uiState.selectedDocument
+            if (document == null) {
+                ScannerHomeContent(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    modifier = modifier
+                )
+            } else {
+                ScannerDetailContent(
+                    document = document,
+                    onEvent = onEvent,
+                    modifier = modifier
+                )
+            }
+        }
+        ScannerPage.Home -> ScannerHomeContent(
+            uiState = uiState,
+            onEvent = onEvent,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun ScannerHomeContent(
+    uiState: ScannerUiState,
+    onEvent: (ScannerEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(modifier = modifier) {
         GreetingHero(
             greeting = uiState.greeting,
@@ -205,15 +283,15 @@ private fun ScannerContent(
                 title = "Scan",
                 subtitle = "Document",
                 icon = Icons.Filled.PhotoCamera,
-                iconTint = ScanBlue,
+                iconTint = ScannerScanBlue,
                 onClick = { onEvent(ScannerEvent.ScanClicked) },
                 modifier = Modifier.weight(1f)
             )
             QuickActionCard(
                 title = "Import",
-                subtitle = "PDF",
+                subtitle = "from Phone",
                 icon = Icons.Filled.Folder,
-                iconTint = ImportPurple,
+                iconTint = ScannerImportPurple,
                 onClick = { onEvent(ScannerEvent.ImportClicked) },
                 modifier = Modifier.weight(1f)
             )
@@ -221,7 +299,7 @@ private fun ScannerContent(
                 title = "History",
                 subtitle = "Files",
                 icon = Icons.Filled.History,
-                iconTint = HistoryGreen,
+                iconTint = ScannerHistoryGreen,
                 onClick = { onEvent(ScannerEvent.HistoryClicked) },
                 modifier = Modifier.weight(1f)
             )
@@ -250,12 +328,21 @@ private fun ScannerContent(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            uiState.recentDocuments.forEach { document ->
-                RecentDocumentCard(
-                    document = document,
-                    onClick = { onEvent(ScannerEvent.DocumentClicked(document.id)) }
-                )
+        if (uiState.recentDocuments.isEmpty()) {
+            EmptyDocumentsState(
+                title = "No documents yet",
+                subtitle = "Scan a physical page or import a photo or PDF from your phone."
+            )
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                uiState.recentDocuments.forEach { document ->
+                    RecentDocumentCard(
+                        document = document,
+                        onClick = { onEvent(ScannerEvent.DocumentClicked(document.id)) },
+                        onShare = { onEvent(ScannerEvent.ShareClicked(document.id)) },
+                        onDelete = { onEvent(ScannerEvent.DeleteClicked(document.id)) }
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
@@ -316,7 +403,7 @@ private fun ScanHeroIllustration(modifier: Modifier = Modifier) {
                 .offset(y = (-10).dp)
                 .size(width = 78.dp, height = 22.dp)
                 .clip(RoundedCornerShape(50))
-                .background(HeroPlatform)
+                .background(ScannerHeroPlatform)
         )
         Box(
             modifier = Modifier
@@ -326,7 +413,7 @@ private fun ScanHeroIllustration(modifier: Modifier = Modifier) {
                 .size(width = 54.dp, height = 68.dp)
                 .shadow(8.dp, RoundedCornerShape(8.dp))
                 .clip(RoundedCornerShape(8.dp))
-                .background(HeroDocument)
+                .background(ScannerHeroDocument)
                 .padding(horizontal = 10.dp, vertical = 12.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -336,7 +423,7 @@ private fun ScanHeroIllustration(modifier: Modifier = Modifier) {
                             .fillMaxWidth(if (index == 4) 0.55f else 1f)
                             .height(4.dp)
                             .clip(RoundedCornerShape(2.dp))
-                            .background(PaperLine)
+                            .background(BorderGray)
                     )
                 }
             }
@@ -391,9 +478,11 @@ private fun QuickActionCard(
 }
 
 @Composable
-private fun RecentDocumentCard(
-    document: RecentDocument,
-    onClick: () -> Unit
+internal fun RecentDocumentCard(
+    document: ScannedDocument,
+    onClick: () -> Unit,
+    onShare: () -> Unit,
+    onDelete: () -> Unit
 ) {
     var menuExpanded by remember(document.id) { mutableStateOf(false) }
 
@@ -411,7 +500,10 @@ private fun RecentDocumentCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            DocumentThumbnail(type = document.type)
+            DocumentThumbnail(
+                type = document.type,
+                thumbnailPath = document.thumbnailPath
+            )
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -428,6 +520,35 @@ private fun RecentDocumentCard(
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                if (document.validationStatus != DocumentValidationStatus.NONE) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = document.validationStatus.label(),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = when (document.validationStatus) {
+                            DocumentValidationStatus.VALID -> SuccessGreen
+                            DocumentValidationStatus.INVALID,
+                            DocumentValidationStatus.UNREADABLE -> ErrorRed
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
+                if (document.legalStatus != DocumentLegalStatus.NONE &&
+                    document.legalStatus != DocumentLegalStatus.SKIPPED
+                ) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = document.legalStatus.label(),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = when (document.legalStatus) {
+                            DocumentLegalStatus.COMPLIANT -> SuccessGreen
+                            DocumentLegalStatus.NON_COMPLIANT -> ErrorRed
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
             }
             Box {
                 IconButton(onClick = { menuExpanded = true }) {
@@ -450,7 +571,17 @@ private fun RecentDocumentCard(
                     )
                     DropdownMenuItem(
                         text = { Text("Share") },
-                        onClick = { menuExpanded = false }
+                        onClick = {
+                            menuExpanded = false
+                            onShare()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = {
+                            menuExpanded = false
+                            onDelete()
+                        }
                     )
                 }
             }
@@ -459,10 +590,15 @@ private fun RecentDocumentCard(
 }
 
 @Composable
-private fun DocumentThumbnail(type: DocumentType) {
+private fun DocumentThumbnail(
+    type: DocumentType,
+    thumbnailPath: String?
+) {
+    val context = LocalContext.current
     val isPdf = type == DocumentType.PDF
-    val badgeColor = if (isPdf) PdfRed else ImageBadge
+    val badgeColor = if (isPdf) ScannerPdfRed else ScannerImageBadge
     val thumbnailShape = RoundedCornerShape(12.dp)
+    val previewFile = thumbnailPath?.let { File(it) }?.takeIf { it.exists() }
 
     Box(
         modifier = Modifier
@@ -475,18 +611,30 @@ private fun DocumentThumbnail(type: DocumentType) {
                 shape = thumbnailShape
             )
     ) {
-        Column(
-            modifier = Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            repeat(3) { index ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(if (index == 2) 0.55f else 1f)
-                        .height(3.dp)
-                        .clip(RoundedCornerShape(1.dp))
-                        .background(PaperLine)
-                )
+        if (previewFile != null) {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(previewFile)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Column(
+                modifier = Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                repeat(3) { index ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(if (index == 2) 0.55f else 1f)
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(1.dp))
+                            .background(BorderGray)
+                    )
+                }
             }
         }
         Box(
@@ -499,10 +647,38 @@ private fun DocumentThumbnail(type: DocumentType) {
         ) {
             Text(
                 text = if (isPdf) "PDF" else "JPG",
-                color = Color.White,
+                color = SurfaceWhite,
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Bold
             )
+        }
+    }
+}
+
+@Composable
+private fun ProcessingOverlay(message: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ScannerOverlayScrim),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CircularProgressIndicator()
+                Text(
+                    text = message,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 }

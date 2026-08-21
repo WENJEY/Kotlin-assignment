@@ -2,10 +2,12 @@ package com.example.assignment.ui.ChatBox
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.assignment.database.remote.ChatConversation
-import com.example.assignment.database.remote.ChatRepository
+import com.example.assignment.database.remote.ChatBox.ChatConversation
+import com.example.assignment.database.remote.ChatBox.ChatRepository
+import com.example.assignment.database.remote.ChatBox.LegalChatAnswer
 import com.example.assignment.database.remote.Repository
-import com.example.assignment.database.remote.SupabaseRepository
+import com.example.assignment.database.remote.supabase.SupabaseRepository
+import com.example.assignment.navigation.PendingScreenAction
 import com.example.assignment.navigation.ScreenRoutes
 import com.example.assignment.ui.profile.ProfileTab
 import com.example.assignment.ui.utils.Result
@@ -46,6 +48,19 @@ class AiChatBoxViewModel(
         if (!hasLoadedConversations) {
             loadConversations()
         }
+        applyPendingChatLaunch()
+    }
+
+    private fun applyPendingChatLaunch() {
+        val (action, conversationId) = PendingScreenAction.consumeChatLaunch()
+        when (action) {
+            PendingScreenAction.NEW_CHAT -> startNewChat()
+            PendingScreenAction.CHAT_HISTORY,
+            PendingScreenAction.HISTORY -> _uiState.update { it.copy(isHistoryOpen = true) }
+        }
+        if (!conversationId.isNullOrBlank()) {
+            openConversation(conversationId)
+        }
     }
 
     private fun loadConversations() {
@@ -59,10 +74,13 @@ class AiChatBoxViewModel(
         viewModelScope.launch {
             when (val result = historyRepository.loadChatConversations()) {
                 is Result.Success -> {
+                    val currentId = _uiState.value.currentConversationId
+                    val title = result.data.find { it.id == currentId }?.title
                     _uiState.update {
                         it.copy(
                             conversations = result.data,
-                            isLoadingHistory = false
+                            isLoadingHistory = false,
+                            conversationTitle = title ?: it.conversationTitle
                         )
                     }
                 }
@@ -82,7 +100,12 @@ class AiChatBoxViewModel(
                             ChatMessage(
                                 id = row.id,
                                 text = row.text,
-                                isFromUser = row.isFromUser
+                                isFromUser = row.isFromUser,
+                                structured = if (row.isFromUser) {
+                                    null
+                                } else {
+                                    LegalChatAnswer.parse(row.text)
+                                }
                             )
                         },
                         isLoadingHistory = false
@@ -110,17 +133,17 @@ class AiChatBoxViewModel(
     }
 
     private fun openConversation(conversationId: String) {
-        val conversation = _uiState.value.conversations.find { it.id == conversationId } ?: return
+        val conversation = _uiState.value.conversations.find { it.id == conversationId }
         _uiState.update {
             it.copy(
-                currentConversationId = conversation.id,
-                conversationTitle = conversation.title,
+                currentConversationId = conversationId,
+                conversationTitle = conversation?.title ?: it.conversationTitle.ifBlank { "Chat" },
                 isHistoryOpen = false,
                 isLoadingHistory = true,
                 messages = emptyList()
             )
         }
-        loadMessages(conversation.id)
+        loadMessages(conversationId)
     }
 
     private fun sendMessage() {
@@ -154,14 +177,15 @@ class AiChatBoxViewModel(
                         it.copy(
                             messages = it.messages + ChatMessage(
                                 id = UUID.randomUUID().toString(),
-                                text = reply,
-                                isFromUser = false
+                                text = reply.displayText,
+                                isFromUser = false,
+                                structured = reply
                             ),
                             isSending = false
                         )
                     }
                     if (conversationId != null) {
-                        persistMessage(conversationId, reply, isFromUser = false)
+                        persistMessage(conversationId, reply.displayText, isFromUser = false)
                     }
                 }
                 is Result.Error -> _uiState.update {

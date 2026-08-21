@@ -11,7 +11,7 @@ import com.example.assignment.ui.login.LoginScreen
 import com.example.assignment.ui.register.RegisterScreen
 import com.example.assignment.ui.profile.ProfileScreen
 import com.example.assignment.ui.userProfile.UserProfileScreen
-import com.example.assignment.database.remote.SupabaseRepository
+import com.example.assignment.database.remote.supabase.SupabaseRepository
 import com.example.assignment.navigation.ScreenRoutes.ForgotPassword
 import com.example.assignment.ui.ChatBox.AiChatBoxScreen
 import com.example.assignment.ui.appearance.AppearanceScreen
@@ -30,9 +30,9 @@ fun MyAppNavHost(
 
     val startDestination = when {
         SupabaseRepository().isLoggedIn() ->
-            ScreenRoutes.Profile.route
+            ScreenRoutes.Home.route
         else ->
-            ScreenRoutes.Login.route
+            ScreenRoutes.Profile.route
     }
 
     NavHost(

@@ -139,8 +139,8 @@ private fun ForgotPasswordContent(
                     Dp.Unspecified
                 }
             }
-            WindowWidthSizeClass.Medium -> 520.dp
-            WindowWidthSizeClass.Expanded -> 480.dp
+            WindowWidthSizeClass.Medium -> 560.dp
+            WindowWidthSizeClass.Expanded -> 720.dp
             else -> Dp.Unspecified
         }
 
@@ -156,51 +156,37 @@ private fun ForgotPasswordContent(
         )
 
         when (windowSize) {
-
-            WindowWidthSizeClass.Compact -> {
-
-                CompactLayout(
-                    uiState = uiState,
-                    onEvent = onEvent,
-                    logoSize = logoSize,
-                    titleSize = titleSize,
-                    formMaxWidth = formMaxWidth,
-                    horizontalPadding = horizontalPadding,
-                    bottomPadding = bottomPadding,
-                    centerContent = isVeryTallScreen
-                )
-            }
-
-
-            /**WindowWidthSizeClass.Medium -> {
-
-                MediumLayout(
-                    uiState = uiState,
-                    onEvent = onEvent,
-                    logoSize = logoSize,
-                    titleSize = titleSize,
-                    formMaxWidth = formMaxWidth,
-                    horizontalPadding = horizontalPadding,
-                    bottomPadding = bottomPadding,
-                    centerContent = isVeryTallScreen
-                )
-            }
-
-
-            WindowWidthSizeClass.Expanded -> {
-
-                ExpandedLayout(
-                    uiState = uiState,
-                    onEvent = onEvent,
-                    logoSize = logoSize,
-                    titleSize = titleSize,
-                    formMaxWidth = formMaxWidth,
-                    horizontalPadding = horizontalPadding,
-                    bottomPadding = bottomPadding,
-                    centerContent = isVeryTallScreen
-                )
-            }
-            **/
+            WindowWidthSizeClass.Compact -> CompactLayout(
+                uiState = uiState,
+                onEvent = onEvent,
+                logoSize = if (isLandscape) logoSize * 0.72f else logoSize,
+                titleSize = if (isLandscape) titleSize * 0.85f else titleSize,
+                formMaxWidth = formMaxWidth,
+                horizontalPadding = horizontalPadding,
+                bottomPadding = bottomPadding,
+                centerContent = isVeryTallScreen && !isLandscape,
+                isLandscape = isLandscape
+            )
+            WindowWidthSizeClass.Medium -> MediumLayout(
+                uiState = uiState,
+                onEvent = onEvent,
+                logoSize = logoSize,
+                titleSize = titleSize,
+                formMaxWidth = formMaxWidth,
+                horizontalPadding = horizontalPadding,
+                bottomPadding = bottomPadding,
+                centerContent = isVeryTallScreen
+            )
+            else -> ExpandedLayout(
+                uiState = uiState,
+                onEvent = onEvent,
+                logoSize = logoSize,
+                titleSize = titleSize,
+                formMaxWidth = formMaxWidth,
+                horizontalPadding = horizontalPadding,
+                bottomPadding = bottomPadding,
+                centerContent = isVeryTallScreen
+            )
         }
     }
 }

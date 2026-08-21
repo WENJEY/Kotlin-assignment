@@ -1,13 +1,12 @@
 package com.example.assignment.ui.ChatBox
 
-import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -17,7 +16,7 @@ fun AiChatBoxScreen(
     navController: NavController,
     windowSize: WindowWidthSizeClass,
     viewModel: AiChatBoxViewModel = viewModel(
-        viewModelStoreOwner = LocalContext.current as ComponentActivity
+        viewModelStoreOwner = checkNotNull(LocalActivity.current)
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -29,8 +28,12 @@ fun AiChatBoxScreen(
 
     LaunchedEffect(uiState.navigateTo) {
         uiState.navigateTo?.let { route ->
+            val currentRoute = navController.currentDestination?.route
             navController.navigate(route) {
                 launchSingleTop = true
+                if (currentRoute != null) {
+                    popUpTo(currentRoute) { inclusive = true }
+                }
             }
             viewModel.onEvent(AiChatBoxEvent.NavigationHandled)
         }

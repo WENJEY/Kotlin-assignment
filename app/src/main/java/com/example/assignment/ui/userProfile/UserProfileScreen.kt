@@ -76,7 +76,7 @@ private fun UserProfileScreenContent(
         val avatarSize = when (windowSize) {
             WindowWidthSizeClass.Compact -> 100.dp
             WindowWidthSizeClass.Medium -> 120.dp
-            WindowWidthSizeClass.Expanded -> 140.dp
+            WindowWidthSizeClass.Expanded -> 160.dp
             else -> 100.dp
         }
 
@@ -86,14 +86,31 @@ private fun UserProfileScreenContent(
                 .background(pageBackgroundBrush())
         )
 
-        // Compact only for now; medium/expanded reuse the same layout.
-        UserProfileCompactLayout(
-            uiState = uiState,
-            onEvent = onEvent,
-            onAvatarSelected = onAvatarSelected,
-            snackBarHostState = snackBarHostState,
-            horizontalPadding = horizontalPadding,
-            avatarSize = avatarSize
-        )
+        when (windowSize) {
+            WindowWidthSizeClass.Compact -> UserProfileCompactLayout(
+                uiState = uiState,
+                onEvent = onEvent,
+                onAvatarSelected = onAvatarSelected,
+                snackBarHostState = snackBarHostState,
+                horizontalPadding = horizontalPadding,
+                avatarSize = avatarSize
+            )
+            WindowWidthSizeClass.Medium -> UserProfileMediumLayout(
+                uiState = uiState,
+                onEvent = onEvent,
+                onAvatarSelected = onAvatarSelected,
+                snackBarHostState = snackBarHostState,
+                horizontalPadding = horizontalPadding,
+                avatarSize = avatarSize
+            )
+            else -> UserProfileExpandedLayout(
+                uiState = uiState,
+                onEvent = onEvent,
+                onAvatarSelected = onAvatarSelected,
+                snackBarHostState = snackBarHostState,
+                horizontalPadding = horizontalPadding,
+                avatarSize = avatarSize
+            )
+        }
     }
 }

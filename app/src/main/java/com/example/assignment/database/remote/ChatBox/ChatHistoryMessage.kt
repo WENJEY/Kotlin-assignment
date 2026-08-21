@@ -1,4 +1,4 @@
-package com.example.assignment.database.remote
+package com.example.assignment.database.remote.ChatBox
 
 data class ChatHistoryMessage(
     val id: String,

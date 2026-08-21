@@ -735,16 +735,20 @@ internal fun CustomPasswordField(
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     errorTextColor = MaterialTheme.colorScheme.onSurface,
+
                     focusedPlaceholderColor = PlaceholderGray,
                     unfocusedPlaceholderColor = PlaceholderGray,
+
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent,
+
                     cursorColor = BrandBlue,
                     errorCursorColor = BrandBlue
                 ),

@@ -29,7 +29,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.assignment.navigation.ProfileRoutes
 import com.example.assignment.navigation.ScreenRoutes
 import com.example.assignment.ui.theme.DialogScrim
 import com.example.assignment.ui.theme.LogoutRed
@@ -68,10 +67,15 @@ fun ProfileScreen(
                     }
                 }
 
-                ScreenRoutes.Home.route -> {
+                ScreenRoutes.Home.route,
+                ScreenRoutes.Scanner.route,
+                ScreenRoutes.ChatBox.route -> {
+                    val currentRoute = navController.currentDestination?.route
                     navController.navigate(route) {
-                        popUpTo(ProfileRoutes.Profile.route) { inclusive = false }
                         launchSingleTop = true
+                        if (currentRoute != null) {
+                            popUpTo(currentRoute) { inclusive = true }
+                        }
                     }
                 }
 

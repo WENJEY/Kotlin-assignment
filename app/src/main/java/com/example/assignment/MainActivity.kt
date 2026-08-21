@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import com.example.assignment.database.remote.SupabaseClientProvider
+import com.example.assignment.database.remote.supabase.SupabaseClientProvider
 import com.example.assignment.database.local.ThemeSettings
 import com.example.assignment.navigation.MyAppNavHost
 import com.example.assignment.ui.theme.AssignmentTheme

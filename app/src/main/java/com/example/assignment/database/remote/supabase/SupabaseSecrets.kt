@@ -1,4 +1,4 @@
-package com.example.assignment.database.remote
+package com.example.assignment.database.remote.supabase
 
 /** Local Supabase configuration. This file is ignored by Git. */
 object SupabaseSecrets {

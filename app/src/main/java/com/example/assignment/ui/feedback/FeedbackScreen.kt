@@ -44,11 +44,12 @@ fun FeedbackScreen(
             if (route == ScreenRoutes.Profile.route) {
                 navController.popBackStack()
             } else {
+                val currentRoute = navController.currentDestination?.route
                 navController.navigate(route) {
-                    popUpTo(ScreenRoutes.Profile.route) {
-                        inclusive = false
-                    }
                     launchSingleTop = true
+                    if (currentRoute != null) {
+                        popUpTo(currentRoute) { inclusive = true }
+                    }
                 }
             }
         }

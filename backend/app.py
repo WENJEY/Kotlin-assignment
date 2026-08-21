@@ -163,20 +163,69 @@ def expand_query(question):
     return f"{question}\nRelated legal terms: {' '.join(extras)}"
 
 
-def no_match_reply(user_question):
-    covered = "\n".join(f"- {name}" for name in COVERED_LAWS)
-    return (
-        "I could not find a matching section in the legal database for that question.\n\n"
-        f"Your question: \"{user_question.strip()}\"\n\n"
-        "This chatbot only answers from Malaysian employment and labour statutes that were indexed. "
-        "It covers:\n"
-        f"{covered}\n\n"
-        "Try asking again with more detail, for example:\n"
-        "- what happened (unpaid wages, dismissal, overtime, leave, workplace safety)\n"
-        "- who is involved (employee, employer, intern, foreign worker)\n"
-        "- which state, if relevant (Peninsular Malaysia, Sabah, or Sarawak)\n\n"
-        "If you rephrase around one of those topics, I can search the statutes again."
-    )
+def no_match_payload(user_question):
+    covered = "; ".join(COVERED_LAWS)
+    payload = {
+        "answer": "I could not find a matching section in the indexed Malaysian employment statutes.",
+        "statute": "",
+        "explanation": (
+            f'Your question: "{user_question.strip()}". '
+            "This chatbot only answers from Malaysian employment and labour statutes that were indexed. "
+            f"It covers: {covered}."
+        ),
+        "next_steps": [
+            "Say what happened (unpaid wages, dismissal, overtime, leave, or workplace safety).",
+            "Say who is involved (employee, employer, intern, or foreign worker).",
+            "Mention the state if relevant (Peninsular Malaysia, Sabah, or Sarawak).",
+        ],
+        "follow_up": "Which topic is closest: wages, dismissal, overtime, leave, or workplace safety?",
+    }
+    payload["reply"] = format_structured_reply(payload)
+    return payload
+
+
+def format_structured_reply(payload):
+    parts = []
+    answer = str(payload.get("answer") or "").strip()
+    statute = str(payload.get("statute") or "").strip()
+    explanation = str(payload.get("explanation") or "").strip()
+    follow_up = str(payload.get("follow_up") or "").strip()
+    steps = payload.get("next_steps") or []
+    if not isinstance(steps, list):
+        steps = [str(steps)]
+
+    if answer:
+        parts.append(f"Answer:\n{answer}")
+    if statute:
+        parts.append(f"Legal basis:\n{statute}")
+    if explanation:
+        parts.append(f"Explanation:\n{explanation}")
+    bullets = [f"- {str(item).strip()}" for item in steps if str(item).strip()]
+    if bullets:
+        parts.append("What you can do:\n" + "\n".join(bullets))
+    if follow_up:
+        parts.append(f"Next question:\n{follow_up}")
+    return "\n\n".join(parts)
+
+
+def normalize_chat_payload(raw, fallback_text=""):
+    data = raw if isinstance(raw, dict) else {}
+    steps = data.get("next_steps") or []
+    if not isinstance(steps, list):
+        steps = [str(steps)]
+    payload = {
+        "answer": str(data.get("answer") or "").strip(),
+        "statute": str(data.get("statute") or data.get("legal_basis") or "").strip(),
+        "explanation": str(data.get("explanation") or "").strip(),
+        "next_steps": [str(item).strip() for item in steps if str(item).strip()][:4],
+        "follow_up": str(data.get("follow_up") or "").strip(),
+    }
+    if not payload["answer"]:
+        payload["answer"] = (fallback_text or "").strip()
+    if not payload["answer"] and not payload["explanation"]:
+        payload["answer"] = "I could not produce a clear answer from the statute database."
+    payload["reply"] = format_structured_reply(payload)
+    return payload
 
 
 def search_with_fallback(user_question):
@@ -302,14 +351,22 @@ def generate_answer(user_question, context_str):
     system_prompt = (
         "You are an expert Malaysian legal advisor specializing in employment and labor statutes.\n"
         "Use ONLY the provided text context below. Do not invent sections or penalties.\n"
-        "Always cite the Source Statute and Section from the context when explaining rules.\n"
+        "Always cite the Source Statute and Section from the context.\n"
         "If the context is only partly related:\n"
-        "- First say what the retrieved statutes DO cover that is closest to the question.\n"
-        "- Then say what is still missing.\n"
-        "- Ask 1 short clarifying question so the user can rephrase.\n"
-        "- Suggest which statute area to ask about next (wages, dismissal, OSHA, children, Sabah/Sarawak, EPF/SOCSO).\n"
-        "Do not reply with only 'I cannot find that specific information in the provided law chunks.'\n"
-        "Never give a dead-end answer. Always offer a next step.\n\n"
+        "- Explain what the retrieved statutes DO cover that is closest to the question.\n"
+        "- Say what is still missing in explanation.\n"
+        "- Put one clarifying question in follow_up.\n"
+        "Never give a dead-end answer. Always offer a next step.\n"
+        "Return JSON only with this shape:\n"
+        "{"
+        '"answer": "1-3 sentence direct answer", '
+        '"statute": "Law name and section, e.g. Employment Act 1955, Section 60", '
+        '"explanation": "2-5 sentences from the context", '
+        '"next_steps": ["practical step 1", "practical step 2"], '
+        '"follow_up": "one short clarifying question, or empty string"'
+        "}\n"
+        "next_steps must have 2 to 4 short actions the worker can take.\n"
+        "follow_up must be empty if the question is already clear.\n\n"
         f"CONTEXT:\n{context_str}"
     )
     response = client.chat.completions.create(
@@ -319,8 +376,22 @@ def generate_answer(user_question, context_str):
             {"role": "user", "content": user_question},
         ],
         temperature=0.2,
+        response_format={"type": "json_object"},
     )
-    return response.choices[0].message.content
+    raw_text = response.choices[0].message.content or ""
+    parsed = parse_json_object(raw_text) or {}
+    return normalize_chat_payload(parsed, fallback_text=raw_text)
+
+
+def payload_looks_unanswered(payload):
+    text = " ".join(
+        [
+            str(payload.get("answer") or ""),
+            str(payload.get("explanation") or ""),
+            str(payload.get("reply") or ""),
+        ]
+    )
+    return looks_like_unanswered(text)
 
 
 # -----------------------------
@@ -335,22 +406,22 @@ def ask_legal_bot(user_question):
 
     if not relevant_chunks:
         track_unanswered(user_question, "no_chunks")
-        return no_match_reply(user_question)
+        return no_match_payload(user_question)
 
     print(f"Found {len(relevant_chunks)} reranked Qdrant matches.")
-    reply = generate_answer(user_question, chunks_to_context(relevant_chunks))
+    payload = generate_answer(user_question, chunks_to_context(relevant_chunks))
 
-    if looks_like_unanswered(reply):
+    if payload_looks_unanswered(payload):
         print("Answer looked incomplete. Improving retrieval and regenerating.")
         improved_chunks = improve_retrieval(user_question, relevant_chunks)
         if improved_chunks:
-            improved_reply = generate_answer(user_question, chunks_to_context(improved_chunks))
-            if not looks_like_unanswered(improved_reply):
-                return improved_reply
-            reply = improved_reply
-        track_unanswered(user_question, "weak_answer", reply)
+            improved_payload = generate_answer(user_question, chunks_to_context(improved_chunks))
+            if not payload_looks_unanswered(improved_payload):
+                return improved_payload
+            payload = improved_payload
+        track_unanswered(user_question, "weak_answer", payload.get("reply", ""))
 
-    return reply
+    return payload
 
 
 def search_qdrant(
@@ -407,6 +478,170 @@ def search_qdrant(
     return [item["payload"] for item in scored_hits]
 
 
+def parse_json_object(raw):
+    text = (raw or "").strip()
+    if text.startswith("```"):
+        text = text.strip("`")
+        text = text.replace("json", "", 1).strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start < 0 or end <= start:
+        return None
+    try:
+        parsed = json.loads(text[start : end + 1])
+    except json.JSONDecodeError:
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+def validate_scanned_document(document_text):
+    sample = (document_text or "").strip()[:6000]
+    if len(sample) < 20:
+        return unreadable_validation_payload()
+
+    identity = classify_scanned_document(sample)
+    if not identity["valid"]:
+        return {
+            **identity,
+            "legal": False,
+            "legal_status": "SKIPPED",
+            "statute": "",
+            "legal_summary": "Labour-law check was skipped because this is not a valid employment document.",
+            "violations": [],
+            "missing_requirements": [],
+            "next_steps": [],
+        }
+
+    legal = check_labour_compliance(sample, identity["document_type"])
+    return {**identity, **legal}
+
+
+def unreadable_validation_payload():
+    return {
+        "valid": False,
+        "document_type": "unreadable",
+        "summary": "Not enough readable text was found to check this document.",
+        "issues": ["The scan did not contain enough text."],
+        "legal": False,
+        "legal_status": "SKIPPED",
+        "statute": "",
+        "legal_summary": "Labour-law check was skipped because the document could not be read.",
+        "violations": [],
+        "missing_requirements": [],
+        "next_steps": [],
+    }
+
+
+def classify_scanned_document(sample):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You only decide if a scanned file is a real Malaysian employment/HR document.\n"
+                    "Do not judge whether the terms are legal yet.\n"
+                    "Return JSON only:\n"
+                    "{"
+                    '"valid": true or false, '
+                    '"document_type": "employment contract|offer letter|payslip|warning letter|'
+                    'dismissal letter|other|unreadable", '
+                    '"summary": "1-3 sentences", '
+                    '"issues": ["why it is not a valid employment document"]'
+                    "}\n"
+                    "valid=true only if it is a genuine employment, HR, or labour document with readable terms.\n"
+                    "valid=false if it is unreadable, a random photo, a non-employment file, or too incomplete to identify."
+                ),
+            },
+            {"role": "user", "content": f"Classify this scanned document:\n\n{sample}"},
+        ],
+        temperature=0.1,
+        response_format={"type": "json_object"},
+    )
+    parsed = parse_json_object(response.choices[0].message.content) or {}
+    issues = parsed.get("issues") or []
+    if not isinstance(issues, list):
+        issues = [str(issues)]
+    document_type = str(parsed.get("document_type") or "other").strip() or "other"
+    summary = str(parsed.get("summary") or "").strip()
+    valid = bool(parsed.get("valid")) and document_type != "unreadable"
+    if not summary:
+        summary = "The AI could not identify this as an employment document."
+        valid = False
+    return {
+        "valid": valid,
+        "document_type": document_type,
+        "summary": summary,
+        "issues": [str(item).strip() for item in issues if str(item).strip()],
+    }
+
+
+def check_labour_compliance(sample, document_type):
+    query = f"{document_type} Malaysian employment law required terms {sample[:800]}"
+    chunks = search_with_fallback(query)
+    if not chunks:
+        chunks = improve_retrieval(query)
+    context = chunks_to_context(chunks) if chunks else "No matching statute chunks were found."
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You check whether the CONTENT of a scanned Malaysian employment document "
+                    "is legal and fulfills Malaysian labour law.\n"
+                    "Use ONLY the statute context below. Do not invent sections or penalties.\n"
+                    f"Document type: {document_type}\n"
+                    "Check wages, hours of work, rest days, leave, notice, dismissal, deductions, "
+                    "children/young persons, OSHA, EPF/SOCSO/EIS, and any other term in the text.\n"
+                    "Return JSON only:\n"
+                    "{"
+                    '"legal": true or false, '
+                    '"statute": "Law name and section(s) from the context", '
+                    '"legal_summary": "2-5 sentences on whether the terms fulfill the law", '
+                    '"violations": ["term that appears to break the law"], '
+                    '"missing_requirements": ["mandatory term that is missing"], '
+                    '"next_steps": ["what the worker can do"]'
+                    "}\n"
+                    "Set legal=true only if there is no clear illegal clause AND the document covers "
+                    "the core required terms for this document type under the provided statutes.\n"
+                    "Set legal=false if wages/hours are below the law, clauses are illegal, "
+                    "mandatory terms are missing, or compliance cannot be shown from the context.\n\n"
+                    f"STATUTE CONTEXT:\n{context}"
+                ),
+            },
+            {"role": "user", "content": f"Check this document against Malaysian labour law:\n\n{sample}"},
+        ],
+        temperature=0.1,
+        response_format={"type": "json_object"},
+    )
+    parsed = parse_json_object(response.choices[0].message.content) or {}
+    violations = parsed.get("violations") or []
+    missing = parsed.get("missing_requirements") or []
+    steps = parsed.get("next_steps") or []
+    if not isinstance(violations, list):
+        violations = [str(violations)]
+    if not isinstance(missing, list):
+        missing = [str(missing)]
+    if not isinstance(steps, list):
+        steps = [str(steps)]
+    legal = bool(parsed.get("legal")) and not violations
+    summary = str(parsed.get("legal_summary") or "").strip()
+    if not summary:
+        summary = "The AI could not finish the Malaysian labour-law check."
+        legal = False
+    return {
+        "legal": legal,
+        "legal_status": "COMPLIANT" if legal else "NON_COMPLIANT",
+        "statute": str(parsed.get("statute") or "").strip(),
+        "legal_summary": summary,
+        "violations": [str(item).strip() for item in violations if str(item).strip()],
+        "missing_requirements": [str(item).strip() for item in missing if str(item).strip()],
+        "next_steps": [str(item).strip() for item in steps if str(item).strip()][:4],
+    }
+
+
 # -----------------------------
 # FLASK API
 # -----------------------------
@@ -423,6 +658,7 @@ def home():
             "GET /health",
             "GET /chat?message=if company is not paying me my salary, what can I do?",
             "POST /chat with JSON {\"message\": \"...\"}",
+            "POST /validate with JSON {\"text\": \"scanned document text\"}",
         ],
     })
 
@@ -461,10 +697,26 @@ def chat():
         return jsonify({"error": "message is required"}), 400
 
     try:
-        reply = ask_legal_bot(message)
-        return jsonify({"reply": reply})
+        payload = ask_legal_bot(message)
+        if not isinstance(payload, dict):
+            payload = normalize_chat_payload({}, fallback_text=str(payload))
+        return jsonify(payload)
     except Exception as error:
         print(f"Chat request failed: {error}")
+        return jsonify({"error": str(error)}), 500
+
+
+@app.post("/validate")
+def validate_document():
+    data = request.get_json(silent=True) or {}
+    text = (data.get("text") or data.get("document") or "").strip()
+    if not text:
+        return jsonify({"error": "text is required"}), 400
+
+    try:
+        return jsonify(validate_scanned_document(text))
+    except Exception as error:
+        print(f"Validate request failed: {error}")
         return jsonify({"error": str(error)}), 500
 
 

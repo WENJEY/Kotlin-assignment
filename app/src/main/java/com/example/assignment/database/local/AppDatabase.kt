@@ -5,16 +5,19 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.assignment.database.remote.scanner.ScannedDocumentDao
+import com.example.assignment.database.remote.scanner.ScannedDocumentEntity
 
 @Database(
-    entities = [ThemePreference::class, ThemeColorPalette::class],
-    version = 2,
+    entities = [ThemePreference::class, ThemeColorPalette::class, ScannedDocumentEntity::class],
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(ThemeModeConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun themePreferenceDao(): ThemePreferenceDao
     abstract fun themeColorDao(): ThemeColorDao
+    abstract fun scannedDocumentDao(): ScannedDocumentDao
 
     companion object {
         @Volatile

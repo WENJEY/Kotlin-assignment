@@ -3,7 +3,7 @@ package com.example.assignment.ui.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.assignment.database.remote.Repository
-import com.example.assignment.database.remote.SupabaseRepository
+import com.example.assignment.database.remote.supabase.SupabaseRepository
 import com.example.assignment.navigation.PasswordResetMode
 import com.example.assignment.navigation.ProfileRoutes
 import com.example.assignment.navigation.ScreenRoutes

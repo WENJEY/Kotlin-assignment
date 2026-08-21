@@ -62,11 +62,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.assignment.database.remote.ChatBox.LegalChatAnswer
 import com.example.assignment.ui.profile.ProfileTab
 import com.example.assignment.ui.theme.BrandBlue
 import com.example.assignment.ui.theme.LogoutRed
 import com.example.assignment.ui.theme.NavSelected
 import com.example.assignment.ui.theme.NavUnselected
+import com.example.assignment.ui.theme.SurfaceWhite
 import com.example.assignment.ui.theme.appNavigationBarColor
 import com.example.assignment.ui.utils.bottomProfileItems
 import com.example.assignment.ui.utils.sideProfileItems
@@ -350,7 +352,7 @@ private fun ConversationHistorySheet(
         ) {
             Text(
                 text = "New chat",
-                color = Color.White,
+                color = SurfaceWhite,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
             )
@@ -392,12 +394,17 @@ private fun ConversationHistorySheet(
 @Composable
 private fun ChatBubble(message: ChatMessage) {
     val isUser = message.isFromUser
+    val structured = message.structured
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     ) {
         Surface(
-            modifier = Modifier.widthIn(max = 300.dp),
+            modifier = if (isUser) {
+                Modifier.widthIn(max = 300.dp)
+            } else {
+                Modifier.fillMaxWidth(0.94f)
+            },
             shape = RoundedCornerShape(
                 topStart = 18.dp,
                 topEnd = 18.dp,
@@ -407,13 +414,84 @@ private fun ChatBubble(message: ChatMessage) {
             color = if (isUser) BrandBlue else MaterialTheme.colorScheme.surface,
             tonalElevation = if (isUser) 0.dp else 1.dp
         ) {
-            Text(
-                text = message.text,
-                color = if (isUser) Color.White else MaterialTheme.colorScheme.onSurface,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
-            )
+            if (!isUser && structured != null && structured.hasStructure) {
+                StructuredAiAnswer(
+                    answer = structured,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
+                )
+            } else {
+                Text(
+                    text = message.text,
+                    color = if (isUser) SurfaceWhite else MaterialTheme.colorScheme.onSurface,
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun StructuredAiAnswer(
+    answer: LegalChatAnswer,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        if (answer.answer.isNotBlank()) {
+            AnswerSection(title = "Answer", body = answer.answer)
+        }
+        if (answer.statute.isNotBlank()) {
+            AnswerSection(title = "Legal basis", body = answer.statute)
+        }
+        if (answer.explanation.isNotBlank()) {
+            AnswerSection(title = "Explanation", body = answer.explanation)
+        }
+        if (answer.nextSteps.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "What you can do",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = BrandBlue
+                )
+                answer.nextSteps.forEach { step ->
+                    Text(
+                        text = "• $step",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp
+                    )
+                }
+            }
+        }
+        if (answer.followUp.isNotBlank()) {
+            AnswerSection(title = "Next question", body = answer.followUp)
+        }
+    }
+}
+
+@Composable
+private fun AnswerSection(
+    title: String,
+    body: String
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = title,
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp,
+            color = BrandBlue
+        )
+        Text(
+            text = body,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 15.sp,
+            lineHeight = 22.sp
+        )
     }
 }
 
@@ -463,7 +541,7 @@ private fun ChatInputBar(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "Send",
-                    tint = Color.White
+                    tint = SurfaceWhite
                 )
             }
         }

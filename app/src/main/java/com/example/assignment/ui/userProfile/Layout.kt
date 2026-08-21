@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -55,6 +58,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,6 +71,8 @@ import com.example.assignment.ui.theme.SurfaceWhite
 
 private val GenderOptions = listOf("Male", "Female", "Other")
 
+// ==================== COMPACT (Phone) ====================
+
 @Composable
 fun UserProfileCompactLayout(
     uiState: UserProfileUiState,
@@ -77,10 +83,180 @@ fun UserProfileCompactLayout(
     avatarSize: Dp,
     modifier: Modifier = Modifier
 ) {
+    UserProfileFrame(
+        uiState = uiState,
+        onEvent = onEvent,
+        onAvatarSelected = onAvatarSelected,
+        snackBarHostState = snackBarHostState,
+        modifier = modifier
+    ) { pickImage ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = horizontalPadding)
+                .padding(bottom = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
+            ProfileAvatar(
+                profileImageUrl = uiState.profileImageUrl,
+                previewBytes = uiState.avatarPreviewBytes,
+                size = avatarSize,
+                onEditClick = pickImage
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            UserProfileFormCard(
+                uiState = uiState,
+                onEvent = onEvent,
+                twoColumn = false
+            )
+        }
+    }
+}
+
+// ==================== MEDIUM (Small tablet) ====================
+
+@Composable
+fun UserProfileMediumLayout(
+    uiState: UserProfileUiState,
+    onAvatarSelected: (ByteArray) -> Unit,
+    onEvent: (UserProfileEvent) -> Unit,
+    snackBarHostState: SnackbarHostState,
+    horizontalPadding: Dp,
+    avatarSize: Dp,
+    modifier: Modifier = Modifier
+) {
+    UserProfileFrame(
+        uiState = uiState,
+        onEvent = onEvent,
+        onAvatarSelected = onAvatarSelected,
+        snackBarHostState = snackBarHostState,
+        modifier = modifier
+    ) { pickImage ->
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 760.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = horizontalPadding)
+                    .padding(bottom = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(12.dp))
+                ProfileAvatar(
+                    profileImageUrl = uiState.profileImageUrl,
+                    previewBytes = uiState.avatarPreviewBytes,
+                    size = avatarSize,
+                    onEditClick = pickImage
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                UserProfileFormCard(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    twoColumn = true
+                )
+            }
+        }
+    }
+}
+
+// ==================== EXPANDED (Large tablet / desktop) ====================
+
+@Composable
+fun UserProfileExpandedLayout(
+    uiState: UserProfileUiState,
+    onAvatarSelected: (ByteArray) -> Unit,
+    onEvent: (UserProfileEvent) -> Unit,
+    snackBarHostState: SnackbarHostState,
+    horizontalPadding: Dp,
+    avatarSize: Dp,
+    modifier: Modifier = Modifier
+) {
+    UserProfileFrame(
+        uiState = uiState,
+        onEvent = onEvent,
+        onAvatarSelected = onAvatarSelected,
+        snackBarHostState = snackBarHostState,
+        modifier = modifier
+    ) { pickImage ->
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val viewportHeight = maxHeight
+            val isLandscape = maxWidth > maxHeight
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(min = viewportHeight)
+                    .padding(start = 32.dp, end = 32.dp, top = 8.dp, bottom = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(28.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(0.32f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    ProfileAvatar(
+                        profileImageUrl = uiState.profileImageUrl,
+                        previewBytes = uiState.avatarPreviewBytes,
+                        size = avatarSize,
+                        onEditClick = pickImage
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        text = "Your profile",
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Update your information and keep your profile up to date.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                }
+
+                UserProfileFormCard(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    twoColumn = true,
+                    fillHeight = !isLandscape,
+                    modifier = Modifier
+                        .weight(0.68f)
+                        .then(
+                            if (isLandscape) {
+                                Modifier
+                            } else {
+                                Modifier.heightIn(min = (viewportHeight - 32.dp).coerceAtLeast(420.dp))
+                            }
+                        )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UserProfileFrame(
+    uiState: UserProfileUiState,
+    onEvent: (UserProfileEvent) -> Unit,
+    onAvatarSelected: (ByteArray) -> Unit,
+    snackBarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+    content: @Composable (pickImage: () -> Unit) -> Unit
+) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
-        // Disable Scaffold's default bottom inset slot so it doesn't cover the form.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = {},
         topBar = {
@@ -94,6 +270,7 @@ fun UserProfileCompactLayout(
         ) { uri ->
             imageToCrop = uri
         }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -108,132 +285,7 @@ fun UserProfileCompactLayout(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-
-                else -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = horizontalPadding)
-                            .padding(bottom = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        ProfileAvatar(
-                            profileImageUrl = uiState.profileImageUrl,
-                            previewBytes = uiState.avatarPreviewBytes,
-                            size = avatarSize,
-                            onEditClick = { imagePicker.launch("image/*") }
-                        )
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp),
-                            color = MaterialTheme.colorScheme.surface,
-                            shadowElevation = 8.dp
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(20.dp)
-                            ) {
-                            ProfileTextField(
-                                label = "Username",
-                                value = uiState.username,
-                                onValueChange = { onEvent(UserProfileEvent.UsernameChanged(it)) },
-                                keyboardType = KeyboardType.Text,
-                                error = uiState.usernameError
-                            )
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            ProfileTextField(
-                                label = "Email",
-                                value = uiState.email,
-                                onValueChange = {},
-                                keyboardType = KeyboardType.Email,
-                                enabled = false
-                            )
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            ProfileTextField(
-                                label = "Age",
-                                value = uiState.age,
-                                onValueChange = { onEvent(UserProfileEvent.AgeChanged(it)) },
-                                keyboardType = KeyboardType.Number,
-                                error = uiState.ageError
-                            )
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            ProfileTextField(
-                                label = "Phone Number",
-                                value = uiState.phoneNumber,
-                                onValueChange = { onEvent(UserProfileEvent.PhoneNumberChanged(it)) },
-                                keyboardType = KeyboardType.Phone,
-                                error = uiState.phoneError
-                            )
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            Text(
-                                text = "Gender",
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                GenderOptions.forEach { option ->
-                                    GenderChip(
-                                        label = option,
-                                        selected = uiState.gender.equals(option, ignoreCase = true),
-                                        onClick = { onEvent(UserProfileEvent.GenderSelected(option)) },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
-                            uiState.genderError?.let { error ->
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(text = error, color = ErrorRed, fontSize = 13.sp)
-                            }
-
-                            Spacer(modifier = Modifier.height(22.dp))
-
-                            Button(
-                                onClick = { onEvent(UserProfileEvent.SaveClicked) },
-                                enabled = !uiState.isSaving,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(52.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = BrandBlue,
-                                    contentColor = SurfaceWhite,
-                                    disabledContainerColor = BrandBlue.copy(alpha = 0.6f)
-                                )
-                            ) {
-                                if (uiState.isSaving) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(22.dp),
-                                        color = SurfaceWhite,
-                                        strokeWidth = 2.dp
-                                    )
-                                } else {
-                                    Text(
-                                        text = "Save Changes",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
-                            }
-                            }
-                        }
-                    }
-                }
+                else -> content { imagePicker.launch("image/*") }
             }
 
             SnackbarHost(
@@ -260,18 +312,180 @@ fun UserProfileCompactLayout(
 }
 
 @Composable
+private fun UserProfileFormCard(
+    uiState: UserProfileUiState,
+    onEvent: (UserProfileEvent) -> Unit,
+    twoColumn: Boolean,
+    fillHeight: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(if (fillHeight) 32.dp else 24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 10.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .then(if (fillHeight) Modifier.fillMaxSize() else Modifier.fillMaxWidth())
+                .padding(
+                    horizontal = if (twoColumn) 36.dp else 20.dp,
+                    vertical = if (fillHeight) 36.dp else if (twoColumn) 28.dp else 20.dp
+                )
+        ) {
+            Column(
+                modifier = Modifier.then(if (fillHeight) Modifier.weight(1f) else Modifier),
+                verticalArrangement = Arrangement.spacedBy(if (twoColumn) 24.dp else 14.dp)
+            ) {
+                if (twoColumn) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        ProfileTextField(
+                            label = "Username",
+                            value = uiState.username,
+                            onValueChange = { onEvent(UserProfileEvent.UsernameChanged(it)) },
+                            keyboardType = KeyboardType.Text,
+                            error = uiState.usernameError,
+                            modifier = Modifier.weight(1f)
+                        )
+                        ProfileTextField(
+                            label = "Email",
+                            value = uiState.email,
+                            onValueChange = {},
+                            keyboardType = KeyboardType.Email,
+                            enabled = false,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        ProfileTextField(
+                            label = "Age",
+                            value = uiState.age,
+                            onValueChange = { onEvent(UserProfileEvent.AgeChanged(it)) },
+                            keyboardType = KeyboardType.Number,
+                            error = uiState.ageError,
+                            modifier = Modifier.weight(1f)
+                        )
+                        ProfileTextField(
+                            label = "Phone Number",
+                            value = uiState.phoneNumber,
+                            onValueChange = { onEvent(UserProfileEvent.PhoneNumberChanged(it)) },
+                            keyboardType = KeyboardType.Phone,
+                            error = uiState.phoneError,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                } else {
+                    ProfileTextField(
+                        label = "Username",
+                        value = uiState.username,
+                        onValueChange = { onEvent(UserProfileEvent.UsernameChanged(it)) },
+                        keyboardType = KeyboardType.Text,
+                        error = uiState.usernameError
+                    )
+                    ProfileTextField(
+                        label = "Email",
+                        value = uiState.email,
+                        onValueChange = {},
+                        keyboardType = KeyboardType.Email,
+                        enabled = false
+                    )
+                    ProfileTextField(
+                        label = "Age",
+                        value = uiState.age,
+                        onValueChange = { onEvent(UserProfileEvent.AgeChanged(it)) },
+                        keyboardType = KeyboardType.Number,
+                        error = uiState.ageError
+                    )
+                    ProfileTextField(
+                        label = "Phone Number",
+                        value = uiState.phoneNumber,
+                        onValueChange = { onEvent(UserProfileEvent.PhoneNumberChanged(it)) },
+                        keyboardType = KeyboardType.Phone,
+                        error = uiState.phoneError
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(if (fillHeight) 20.dp else 16.dp))
+            Column {
+                Text(
+                    text = "Gender",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    GenderOptions.forEach { option ->
+                        GenderChip(
+                            label = option,
+                            selected = uiState.gender.equals(option, ignoreCase = true),
+                            onClick = { onEvent(UserProfileEvent.GenderSelected(option)) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                uiState.genderError?.let { error ->
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(text = error, color = ErrorRed, fontSize = 13.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(if (fillHeight) 28.dp else 22.dp))
+            Button(
+                onClick = { onEvent(UserProfileEvent.SaveClicked) },
+                enabled = !uiState.isSaving,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BrandBlue,
+                    contentColor = SurfaceWhite,
+                    disabledContainerColor = BrandBlue.copy(alpha = 0.6f)
+                )
+            ) {
+                if (uiState.isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = SurfaceWhite,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Save Changes",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ProfileTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType,
     error: String? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     CompositionLocalProvider(
         LocalAutofillHighlightColor provides Color.Transparent
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = modifier.fillMaxWidth()) {
             Text(
                 text = label,
                 color = MaterialTheme.colorScheme.onSurface,

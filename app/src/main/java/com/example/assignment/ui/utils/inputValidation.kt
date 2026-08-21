@@ -1,7 +1,7 @@
 package com.example.assignment.ui.utils
 
 import com.example.assignment.database.remote.Repository
-import com.example.assignment.database.remote.SupabaseRepository
+import com.example.assignment.database.remote.supabase.SupabaseRepository
 
 object RegisterValidator {
      fun validateEmail(email: String): String? = when {

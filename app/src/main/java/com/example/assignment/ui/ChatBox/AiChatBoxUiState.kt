@@ -1,12 +1,14 @@
 package com.example.assignment.ui.ChatBox
 
-import com.example.assignment.database.remote.ChatConversation
+import com.example.assignment.database.remote.ChatBox.ChatConversation
+import com.example.assignment.database.remote.ChatBox.LegalChatAnswer
 import com.example.assignment.ui.profile.ProfileTab
 
 data class ChatMessage(
     val id: String,
     val text: String,
-    val isFromUser: Boolean
+    val isFromUser: Boolean,
+    val structured: LegalChatAnswer? = null
 )
 
 data class AiChatBoxUiState(

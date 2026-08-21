@@ -18,9 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -102,13 +100,6 @@ private fun ResetPasswordContent(
             else -> 24.dp
         }
 
-        val titleSize: TextUnit = when {
-            maxWidth < 340.dp -> 27.sp
-            windowSize == WindowWidthSizeClass.Compact -> 30.sp
-            windowSize == WindowWidthSizeClass.Medium -> 40.sp
-            else -> 36.sp
-        }
-
         val logoSize = when (windowSize) {
             WindowWidthSizeClass.Compact -> {
                 if (isNarrowPhone) {
@@ -132,10 +123,14 @@ private fun ResetPasswordContent(
                 }
             }
 
-            WindowWidthSizeClass.Medium -> 520.dp
-            WindowWidthSizeClass.Expanded -> 480.dp
+            WindowWidthSizeClass.Medium -> 560.dp
+            WindowWidthSizeClass.Expanded -> 720.dp
             else -> Dp.Unspecified
         }
+
+        val bottomPadding = WindowInsets.navigationBars
+            .asPaddingValues()
+            .calculateBottomPadding()
 
         Box(
             modifier = Modifier
@@ -143,44 +138,35 @@ private fun ResetPasswordContent(
                 .background(pageBackgroundBrush())
         )
         when (windowSize) {
-            WindowWidthSizeClass.Compact -> {
-                CompactLayout(
-                    uiState = uiState,
-                    onEvent = onEvent,
-                    logoSize = logoSize,
-                    titleSize = titleSize,
-                    formMaxWidth = formMaxWidth,
-                    horizontalPadding = horizontalPadding,
-                    maxHeight = maxHeight,
-                    centerContent = isVeryTallScreen
-                )
-            }
-
-            WindowWidthSizeClass.Medium -> {
-                CompactLayout(
-                    uiState = uiState,
-                    onEvent = onEvent,
-                    logoSize = logoSize,
-                    titleSize = titleSize,
-                    formMaxWidth = formMaxWidth,
-                    horizontalPadding = horizontalPadding,
-                    maxHeight = maxHeight,
-                    centerContent = isVeryTallScreen
-                )
-            }
-
-            WindowWidthSizeClass.Expanded -> {
-                CompactLayout(
-                    uiState = uiState,
-                    onEvent = onEvent,
-                    logoSize = logoSize,
-                    titleSize = titleSize,
-                    formMaxWidth = formMaxWidth,
-                    horizontalPadding = horizontalPadding,
-                    maxHeight = maxHeight,
-                    centerContent = isVeryTallScreen
-                )
-            }
+            WindowWidthSizeClass.Compact -> CompactLayout(
+                uiState = uiState,
+                onEvent = onEvent,
+                logoSize = logoSize,
+                formMaxWidth = formMaxWidth,
+                horizontalPadding = horizontalPadding,
+                bottomPadding = bottomPadding,
+                maxHeight = maxHeight,
+                centerContent = isVeryTallScreen && !isLandscape,
+                isLandscape = isLandscape
+            )
+            WindowWidthSizeClass.Medium -> MediumLayout(
+                uiState = uiState,
+                onEvent = onEvent,
+                logoSize = logoSize,
+                formMaxWidth = formMaxWidth,
+                horizontalPadding = horizontalPadding,
+                bottomPadding = bottomPadding,
+                centerContent = isVeryTallScreen
+            )
+            else -> ExpandedLayout(
+                uiState = uiState,
+                onEvent = onEvent,
+                logoSize = logoSize,
+                formMaxWidth = formMaxWidth,
+                horizontalPadding = horizontalPadding,
+                bottomPadding = bottomPadding,
+                centerContent = isVeryTallScreen
+            )
         }
         if (uiState.showSuccessDialog) {
             AlertDialog(

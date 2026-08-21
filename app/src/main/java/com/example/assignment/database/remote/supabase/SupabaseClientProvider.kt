@@ -1,4 +1,4 @@
-package com.example.assignment.database.remote
+package com.example.assignment.database.remote.supabase
 
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth

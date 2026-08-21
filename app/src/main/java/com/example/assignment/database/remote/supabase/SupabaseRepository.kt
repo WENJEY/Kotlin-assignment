@@ -1,7 +1,13 @@
-package com.example.assignment.database.remote
+package com.example.assignment.database.remote.supabase
 
 import android.util.Log
-import com.example.assignment.database.remote.SupabaseClientProvider.client
+import com.example.assignment.database.remote.ChatBox.ChatConversation
+import com.example.assignment.database.remote.ChatBox.ChatHistoryMessage
+import com.example.assignment.database.remote.Data.Feedback
+import com.example.assignment.database.remote.Data.RemoteScannedDocument
+import com.example.assignment.database.remote.Repository
+import com.example.assignment.database.remote.Data.User
+import com.example.assignment.database.remote.supabase.SupabaseClientProvider.client
 import com.example.assignment.ui.utils.Result
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -15,6 +21,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import java.time.Instant
+import java.util.UUID
 
 class SupabaseRepository : Repository {
     private val auth get() = client.auth
@@ -310,7 +318,7 @@ class SupabaseRepository : Repository {
             filter { eq("user_id", user.id) }
             order("updated_at", Order.DESCENDING)
         }.decodeList<ConversationRow>().map { row ->
-            ChatConversation(id = row.id, title = row.title)
+            ChatConversation(id = row.id, title = row.title, updatedAt = row.updatedAt)
         }
     }.fold(
         onSuccess = { Result.Success(it) },
@@ -323,7 +331,7 @@ class SupabaseRepository : Repository {
     override suspend fun createChatConversation(title: String): Result<ChatConversation> = runCatching {
         val user = client.auth.currentUserOrNull() ?: error("Not logged in")
         val conversation = ChatConversation(
-            id = java.util.UUID.randomUUID().toString(),
+            id = UUID.randomUUID().toString(),
             title = title.trim().ifBlank { "New chat" }.take(60)
         )
         client.from("chat_conversations").insert(
@@ -380,7 +388,7 @@ class SupabaseRepository : Repository {
             )
         )
         client.from("chat_conversations").update(
-            ConversationTouch(updatedAt = java.time.Instant.now().toString())
+            ConversationTouch(updatedAt = Instant.now().toString())
         ) {
             filter { eq("id", conversationId) }
         }
@@ -391,6 +399,121 @@ class SupabaseRepository : Repository {
             Result.Error(chatHistoryError("save", exception))
         }
     )
+
+    override suspend fun loadScannedDocuments(): Result<List<RemoteScannedDocument>> = runCatching {
+        val user = client.auth.currentUserOrNull() ?: error("Not logged in")
+        client.from("scanned_documents").select {
+            filter { eq("user_id", user.id) }
+            order("created_at", Order.DESCENDING)
+        }.decodeList<ScannedDocumentRow>().map { it.toRemote() }
+    }.fold(
+        onSuccess = { Result.Success(it) },
+        onFailure = { exception ->
+            Log.e("SupabaseRepository", "Load scanned documents failed", exception)
+            Result.Error(scannerHistoryError("load", exception))
+        }
+    )
+
+    override suspend fun upsertScannedDocument(
+        document: RemoteScannedDocument,
+        fileBytes: ByteArray?,
+        thumbnailBytes: ByteArray?
+    ): Result<Unit> = runCatching {
+        val user = client.auth.currentUserOrNull() ?: error("Not logged in")
+        val filePath = document.storageFilePath.ifBlank {
+            scanStoragePath(user.id, document.id, document.mimeType)
+        }
+        val thumbPath = document.storageThumbnailPath ?: scanThumbnailPath(user.id, document.id)
+        if (fileBytes != null && fileBytes.isNotEmpty()) {
+            client.storage.from(ScanBucket).upload(filePath, fileBytes) {
+                upsert = true
+                contentType = contentTypeFor(document.mimeType)
+            }
+        }
+        if (thumbnailBytes != null && thumbnailBytes.isNotEmpty()) {
+            client.storage.from(ScanBucket).upload(thumbPath, thumbnailBytes) {
+                upsert = true
+                contentType = ContentType.Image.JPEG
+            }
+        }
+        client.from("scanned_documents").upsert(
+            document.toRow(
+                userId = user.id,
+                storageFilePath = filePath,
+                storageThumbnailPath = if (
+                    thumbnailBytes != null || document.storageThumbnailPath != null
+                ) {
+                    thumbPath
+                } else {
+                    null
+                }
+            )
+        )
+    }.fold(
+        onSuccess = { Result.Success(Unit) },
+        onFailure = { exception ->
+            Log.e("SupabaseRepository", "Save scanned document failed", exception)
+            Result.Error(scannerHistoryError("save", exception))
+        }
+    )
+
+    override suspend fun downloadScanFile(storagePath: String): Result<ByteArray> = runCatching {
+        require(storagePath.isNotBlank()) { "Missing scan file path" }
+        client.auth.currentUserOrNull() ?: error("Not logged in")
+        client.storage.from(ScanBucket).downloadAuthenticated(storagePath)
+    }.fold(
+        onSuccess = { Result.Success(it) },
+        onFailure = { exception ->
+            Log.e("SupabaseRepository", "Download scan file failed", exception)
+            Result.Error(scannerHistoryError("download", exception))
+        }
+    )
+
+    override suspend fun deleteScannedDocument(id: String): Result<Unit> = runCatching {
+        val user = client.auth.currentUserOrNull() ?: error("Not logged in")
+        client.from("scanned_documents").delete {
+            filter {
+                eq("id", id)
+                eq("user_id", user.id)
+            }
+        }
+        val prefix = "${user.id}/$id"
+        runCatching {
+            client.storage.from(ScanBucket).delete(
+                listOf(
+                    "$prefix/document.pdf",
+                    "$prefix/document.jpg",
+                    "$prefix/thumbnail.jpg"
+                )
+            )
+        }
+        Unit
+    }.fold(
+        onSuccess = { Result.Success(Unit) },
+        onFailure = { exception ->
+            Log.e("SupabaseRepository", "Delete scanned document failed", exception)
+            Result.Error(scannerHistoryError("delete", exception))
+        }
+    )
+
+    private fun scannerHistoryError(action: String, exception: Throwable): String {
+        val detail = exception.message.orEmpty()
+        return when {
+            detail.contains("Not logged in", ignoreCase = true) ->
+                "Sign in to save scanner history on other phones."
+            detail.contains("relation", ignoreCase = true) &&
+                detail.contains("scanned_documents", ignoreCase = true) ->
+                "Scanner history is not ready. Run supabase/scanned_documents_setup.sql."
+            detail.contains("bucket", ignoreCase = true) &&
+                detail.contains("not found", ignoreCase = true) ->
+                "Scanner file storage is not ready. Run supabase/scanned_documents_setup.sql."
+            detail.contains("row-level security", ignoreCase = true) ||
+                detail.contains("permission denied", ignoreCase = true) ||
+                detail.contains("42501") ->
+                "Permission denied. Run supabase/scanned_documents_setup.sql."
+            else -> "Unable to $action scanner history."
+        }
+    }
 
     private fun chatHistoryError(action: String, exception: Throwable): String {
         val detail = exception.message.orEmpty()
@@ -511,3 +634,108 @@ private data class ConversationInsert(
 private data class ConversationTouch(
     @SerialName("updated_at") val updatedAt: String
 )
+
+private const val ScanBucket = "scans"
+
+@Serializable
+private data class ScannedDocumentRow(
+    val id: String,
+    @SerialName("user_id") val userId: String? = null,
+    val name: String,
+    val type: String,
+    val source: String,
+    @SerialName("mime_type") val mimeType: String = "image/jpeg",
+    @SerialName("extracted_text") val extractedText: String = "",
+    @SerialName("file_size_bytes") val fileSizeBytes: Long = 0,
+    @SerialName("page_count") val pageCount: Int = 1,
+    @SerialName("created_at") val createdAt: Long = 0,
+    @SerialName("storage_file_path") val storageFilePath: String = "",
+    @SerialName("storage_thumbnail_path") val storageThumbnailPath: String? = null,
+    @SerialName("is_valid") val isValid: Boolean? = null,
+    @SerialName("validation_status") val validationStatus: String = "NONE",
+    @SerialName("document_kind") val documentKind: String = "",
+    @SerialName("validation_summary") val validationSummary: String = "",
+    @SerialName("validation_issues") val validationIssues: String = "",
+    @SerialName("is_legal") val isLegal: Boolean? = null,
+    @SerialName("legal_status") val legalStatus: String = "NONE",
+    @SerialName("legal_statute") val legalStatute: String = "",
+    @SerialName("legal_summary") val legalSummary: String = "",
+    @SerialName("legal_violations") val legalViolations: String = "",
+    @SerialName("legal_missing") val legalMissing: String = "",
+    @SerialName("legal_next_steps") val legalNextSteps: String = ""
+)
+
+private fun ScannedDocumentRow.toRemote() = RemoteScannedDocument(
+    id = id,
+    name = name,
+    type = type,
+    source = source,
+    mimeType = mimeType,
+    extractedText = extractedText,
+    fileSizeBytes = fileSizeBytes,
+    pageCount = pageCount,
+    createdAt = createdAt,
+    storageFilePath = storageFilePath,
+    storageThumbnailPath = storageThumbnailPath,
+    isValid = isValid,
+    validationStatus = validationStatus,
+    documentKind = documentKind,
+    validationSummary = validationSummary,
+    validationIssues = validationIssues,
+    isLegal = isLegal,
+    legalStatus = legalStatus,
+    legalStatute = legalStatute,
+    legalSummary = legalSummary,
+    legalViolations = legalViolations,
+    legalMissing = legalMissing,
+    legalNextSteps = legalNextSteps
+)
+
+private fun RemoteScannedDocument.toRow(
+    userId: String,
+    storageFilePath: String,
+    storageThumbnailPath: String?
+) = ScannedDocumentRow(
+    id = id,
+    userId = userId,
+    name = name,
+    type = type,
+    source = source,
+    mimeType = mimeType,
+    extractedText = extractedText,
+    fileSizeBytes = fileSizeBytes,
+    pageCount = pageCount,
+    createdAt = createdAt,
+    storageFilePath = storageFilePath,
+    storageThumbnailPath = storageThumbnailPath,
+    isValid = isValid,
+    validationStatus = validationStatus,
+    documentKind = documentKind,
+    validationSummary = validationSummary,
+    validationIssues = validationIssues,
+    isLegal = isLegal,
+    legalStatus = legalStatus,
+    legalStatute = legalStatute,
+    legalSummary = legalSummary,
+    legalViolations = legalViolations,
+    legalMissing = legalMissing,
+    legalNextSteps = legalNextSteps
+)
+
+private fun scanStoragePath(userId: String, documentId: String, mimeType: String): String {
+    val fileName = if (mimeType.contains("pdf", ignoreCase = true)) {
+        "document.pdf"
+    } else {
+        "document.jpg"
+    }
+    return "$userId/$documentId/$fileName"
+}
+
+private fun scanThumbnailPath(userId: String, documentId: String): String =
+    "$userId/$documentId/thumbnail.jpg"
+
+private fun contentTypeFor(mimeType: String): ContentType = when {
+    mimeType.contains("pdf", ignoreCase = true) -> ContentType.Application.Pdf
+    mimeType.contains("png", ignoreCase = true) -> ContentType.Image.PNG
+    else -> ContentType.Image.JPEG
+}

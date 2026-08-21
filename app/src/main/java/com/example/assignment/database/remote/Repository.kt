@@ -1,5 +1,10 @@
 package com.example.assignment.database.remote
 
+import com.example.assignment.database.remote.ChatBox.ChatConversation
+import com.example.assignment.database.remote.ChatBox.ChatHistoryMessage
+import com.example.assignment.database.remote.Data.Feedback
+import com.example.assignment.database.remote.Data.RemoteScannedDocument
+import com.example.assignment.database.remote.Data.User
 import com.example.assignment.ui.utils.Result
 
 interface Repository {
@@ -29,4 +34,12 @@ interface Repository {
         text: String,
         isFromUser: Boolean
     ): Result<Unit>
+    suspend fun loadScannedDocuments(): Result<List<RemoteScannedDocument>>
+    suspend fun upsertScannedDocument(
+        document: RemoteScannedDocument,
+        fileBytes: ByteArray? = null,
+        thumbnailBytes: ByteArray? = null
+    ): Result<Unit>
+    suspend fun downloadScanFile(storagePath: String): Result<ByteArray>
+    suspend fun deleteScannedDocument(id: String): Result<Unit>
 }

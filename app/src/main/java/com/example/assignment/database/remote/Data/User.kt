@@ -1,4 +1,4 @@
-package com.example.assignment.database.remote
+package com.example.assignment.database.remote.Data
 
 data class User(
     val id: String = "",

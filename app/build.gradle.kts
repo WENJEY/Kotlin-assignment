@@ -59,6 +59,7 @@ dependencies {
     // Local theme preference persistence
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.play.services.mlkit.text.recognition.common)
     ksp(libs.androidx.room.compiler)
 
     // AndroidX
@@ -90,6 +91,12 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.11.0")
+
+    // Document scan + on-device OCR
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0")
+    implementation("com.google.mlkit:vision-common:17.3.0")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 
     // Testing
     testImplementation(libs.junit)

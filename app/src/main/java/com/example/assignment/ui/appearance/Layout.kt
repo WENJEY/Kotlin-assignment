@@ -5,12 +5,14 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -79,13 +81,148 @@ private val themeOptions = listOf(
     )
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceLayout(
     uiState: AppearanceUiState,
     windowSize: WindowWidthSizeClass,
     snackbarHostState: SnackbarHostState,
     onEvent: (AppearanceEvent) -> Unit
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isLandscape = maxWidth > maxHeight
+        when (windowSize) {
+            WindowWidthSizeClass.Compact -> AppearanceCompactLayout(
+                uiState = uiState,
+                snackbarHostState = snackbarHostState,
+                onEvent = onEvent,
+                isLandscape = isLandscape
+            )
+            WindowWidthSizeClass.Medium -> AppearanceMediumLayout(
+                uiState = uiState,
+                snackbarHostState = snackbarHostState,
+                onEvent = onEvent
+            )
+            else -> AppearanceExpandedLayout(
+                uiState = uiState,
+                snackbarHostState = snackbarHostState,
+                onEvent = onEvent
+            )
+        }
+    }
+}
+
+// ==================== COMPACT (Phone) ====================
+
+@Composable
+private fun AppearanceCompactLayout(
+    uiState: AppearanceUiState,
+    snackbarHostState: SnackbarHostState,
+    onEvent: (AppearanceEvent) -> Unit,
+    isLandscape: Boolean
+) {
+    AppearanceFrame(
+        snackbarHostState = snackbarHostState,
+        onEvent = onEvent
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .navigationBarsPadding()
+                .padding(
+                    horizontal = 20.dp,
+                    vertical = if (isLandscape) 16.dp else 28.dp
+                ),
+            verticalArrangement = Arrangement.spacedBy(if (isLandscape) 12.dp else 16.dp)
+        ) {
+            AppearanceIntro()
+            AppearanceOptions(uiState = uiState, onEvent = onEvent)
+            AppearanceSaveButton(uiState = uiState, onEvent = onEvent)
+        }
+    }
+}
+
+// ==================== MEDIUM (Small tablet) ====================
+
+@Composable
+private fun AppearanceMediumLayout(
+    uiState: AppearanceUiState,
+    snackbarHostState: SnackbarHostState,
+    onEvent: (AppearanceEvent) -> Unit
+) {
+    AppearanceFrame(
+        snackbarHostState = snackbarHostState,
+        onEvent = onEvent
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .navigationBarsPadding(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 640.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 48.dp, vertical = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                AppearanceIntro()
+                AppearanceOptions(uiState = uiState, onEvent = onEvent)
+                AppearanceSaveButton(uiState = uiState, onEvent = onEvent)
+            }
+        }
+    }
+}
+
+// ==================== EXPANDED (Large tablet / desktop) ====================
+
+@Composable
+private fun AppearanceExpandedLayout(
+    uiState: AppearanceUiState,
+    snackbarHostState: SnackbarHostState,
+    onEvent: (AppearanceEvent) -> Unit
+) {
+    AppearanceFrame(
+        snackbarHostState = snackbarHostState,
+        onEvent = onEvent
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 64.dp, vertical = 24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(36.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(0.38f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                AppearanceIntro()
+            }
+            Column(
+                modifier = Modifier.weight(0.62f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                AppearanceOptions(uiState = uiState, onEvent = onEvent)
+                AppearanceSaveButton(uiState = uiState, onEvent = onEvent)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AppearanceFrame(
+    snackbarHostState: SnackbarHostState,
+    onEvent: (AppearanceEvent) -> Unit,
+    content: @Composable () -> Unit
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -123,84 +260,86 @@ fun AppearanceLayout(
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(top = 64.dp)
-                        .size(36.dp)
-                )
-            } else {
-                Column(
-                    modifier = Modifier
-                        .widthIn(max = 680.dp)
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .navigationBarsPadding()
-                        .padding(
-                            horizontal = if (
-                                windowSize == WindowWidthSizeClass.Compact
-                            ) {
-                                20.dp
-                            } else {
-                                40.dp
-                            },
-                            vertical = 28.dp
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        text = "Choose your theme",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Select how the app should look. Your choice is saved on this device.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            content()
+        }
+    }
+}
 
-                    Spacer(Modifier.height(4.dp))
+@Composable
+private fun AppearanceIntro() {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "Choose your theme",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Select how the app should look. Your choice is saved on this device.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
 
-                    themeOptions.forEach { option ->
-                        ThemeOptionCard(
-                            option = option,
-                            selected = uiState.selectedMode == option.mode,
-                            onClick = {
-                                onEvent(AppearanceEvent.ThemeSelected(option.mode))
-                            }
-                        )
-                    }
+@Composable
+private fun AppearanceOptions(
+    uiState: AppearanceUiState,
+    onEvent: (AppearanceEvent) -> Unit
+) {
+    if (uiState.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(36.dp))
+        }
+        return
+    }
 
-                    Spacer(Modifier.height(12.dp))
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        themeOptions.forEach { option ->
+            ThemeOptionCard(
+                option = option,
+                selected = uiState.selectedMode == option.mode,
+                onClick = { onEvent(AppearanceEvent.ThemeSelected(option.mode)) }
+            )
+        }
+    }
+}
 
-                    Button(
-                        onClick = { onEvent(AppearanceEvent.SaveClicked) },
-                        enabled = uiState.hasUnsavedChanges && !uiState.isSaving,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        if (uiState.isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(22.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                text = "Save",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-                }
-            }
+@Composable
+private fun AppearanceSaveButton(
+    uiState: AppearanceUiState,
+    onEvent: (AppearanceEvent) -> Unit
+) {
+    if (uiState.isLoading) return
+
+    Button(
+        onClick = { onEvent(AppearanceEvent.SaveClicked) },
+        enabled = uiState.hasUnsavedChanges && !uiState.isSaving,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        )
+    ) {
+        if (uiState.isSaving) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(22.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Text(
+                text = "Save",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
